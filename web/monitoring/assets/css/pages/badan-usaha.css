@@ -1,0 +1,91 @@
+/* Menu Daftar Badan Usaha. */
+
+/* Hilangkan margin pada section Monitoring Badan Usaha. */
+#monitoringPage,
+#monitoringPage section,
+#monitoringPage > div,
+#monitoringPage > section {
+  margin: 0 !important;
+}
+
+/* Input Monitoring mengikuti gaya input Filter Dashboard, tanpa judul filter. */
+#monitoringPage input,
+#monitoringPage select {
+  height: 40px;
+  min-height: 40px;
+  background-color: #fff;
+  padding: 8px 12px;
+}
+
+#monitoringPage input:focus,
+#monitoringPage select:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16,185,129,.18);
+}
+
+#monitoringPage #searchInput {
+  padding-left: 40px;
+}
+
+/* Perubahan spacing hanya berlaku pada menu Monitoring Badan Usaha. Dashboard tidak diubah. */
+#monitoringPage {
+  gap: 12px !important;
+}
+
+#monitoringPage h2 {
+  margin-bottom: 4px !important;
+}
+
+/* Filter tidak diberi jarak tambahan dari konten/tabel utama. */
+#monitoringPage > .flex.flex-col.lg\:flex-row {
+  gap: 24px !important;
+}
+
+/* Data Badan Usaha: zero padding for card header/footer and table cells; 24px padding around the table area. */
+#monitoringPage > div.bg-white.rounded-2xl > div.p-5.bg-white.border-b.border-slate-100,
+#monitoringPage > div.bg-white.rounded-2xl > div.p-5.bg-white.border-t.border-slate-100 {
+  padding: 0 !important;
+}
+
+/* Data Badan Usaha outer card: 20px; spacing between header/table/pagination: 16px; square corners. */
+#monitoringPage > div.bg-white.rounded-2xl {
+  padding: 20px !important;
+}
+
+#monitoringPage > div.bg-white.rounded-2xl > div.p-5.bg-white.border-b.border-slate-100,
+#monitoringPage > div.bg-white.rounded-2xl > div.p-5.bg-white.border-t.border-slate-100 {
+  border: 0 !important;
+  margin-bottom: 16px !important;
+}
+
+/* Data Badan Usaha only: no bottom margin before pagination; outer card radius 8px. */
+#monitoringPage > div.bg-white.rounded-2xl {
+  border-radius: 8px !important;
+}
+
+/* Pagination Data Badan Usaha: jarak atas 16px, jarak bawah 0px. */
+#monitoringPage #monitoringTableScroll + div {
+  margin-top: 16px !important;
+  margin-bottom: 0 !important;
+}
+
+/* Data Badan Usaha: satu garis hanya di akhir baris terakhir pada halaman pagination aktif. */
+#monitoringPage #tableBody > tr {
+  border-top-width: 0 !important;
+}
+
+#monitoringPage #tableBody > tr > td {
+  border-top: 0 !important;
+  border-bottom: 0 !important;
+}
+
+#monitoringPage #tableBody > tr:last-child > td {
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+/* Alert khusus Monitoring Badan Usaha: beri jarak 12px di bawah alert. */
+#monitoringPage #monitorErrorNotice,
+#monitoringPage #monitorSuccessNotice {
+  margin-bottom: 12px !important;
+}

@@ -1,0 +1,70 @@
+<section class="admin-page hidden" id="page-upload">
+  <div class="admin-page-head">
+    <div>
+      <span class="admin-page-kicker" data-jenis-label></span>
+      <h2>Upload Excel</h2>
+      <p>Unggah file <span data-jenis-label></span> per bulan. Periksa dan perbaiki isinya di spreadsheet sebelum disimpan ke database.</p>
+    </div>
+    <div class="admin-row-actions">
+      <button class="admin-btn admin-btn-ghost" type="button" onclick="downloadTemplate()"><i class="fa-solid fa-file-arrow-down"></i><span>Download template</span></button>
+      <button class="admin-btn admin-btn-ghost" type="button" onclick="loadUploadMonths()"><i class="fa-solid fa-rotate"></i><span>Muat ulang</span></button>
+    </div>
+  </div>
+
+  <div class="admin-card">
+    <div class="admin-card-head">
+      <h3>Upload per Bulan</h3>
+      <p>Pilih bulan lalu unggah file Excel bulan tersebut. Data <span data-jenis-label></span> bulan itu diganti dengan isi file.</p>
+    </div>
+    <input accept=".xlsx,.xlsm" class="hidden" id="uploadMonthFile" type="file" onchange="handleUploadFile(this.files[0], uploadPendingMonth)"/>
+    <div class="overflow-x-auto">
+      <table class="pantau-table w-full text-left border-collapse min-w-[640px]">
+        <thead>
+          <tr>
+            <th>Bulan</th>
+            <th class="text-right">Jumlah BU</th>
+            <th class="text-right">Total Nominal</th>
+            <th class="text-right">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="uploadMonthBody"><tr><td class="admin-empty" colspan="4">Memuat data...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="admin-card">
+    <div class="admin-card-head">
+      <h3>Upload Banyak Bulan Sekaligus</h3>
+      <p>File dengan satu sheet per bulan. Bulan dibaca dari nama sheet atau kolom Periode. Sheet kosong dilewati, jadi template satu tahun bisa diisi sebagian saja.</p>
+    </div>
+    <label class="admin-dropzone" id="uploadDropzone" for="uploadFile">
+      <input accept=".xlsx,.xlsm" class="hidden" id="uploadFile" type="file" onchange="handleUploadFile(this.files[0])"/>
+      <i class="fa-solid fa-file-excel"></i>
+      <strong id="uploadFileName">Pilih atau tarik file Excel ke sini</strong>
+      <span>Format kolom: NO, KODE BU, NAMA BU, Periode, Peserta, Nominal (.xlsx)</span>
+    </label>
+  </div>
+
+  <div class="admin-card hidden" id="uploadReview">
+    <div class="admin-upload-target" id="uploadTargetInfo"></div>
+    <div class="admin-toolbar">
+      <label class="admin-check">
+        <input checked id="uploadReplace" type="checkbox"/>
+        <span>Ganti seluruh data bulan yang sama</span>
+      </label>
+      <div class="admin-toolbar-spacer"></div>
+      <span class="admin-muted" id="uploadSummary"></span>
+      <button class="admin-btn admin-btn-primary pantau-green-active" id="uploadSaveButton" type="button" onclick="saveUpload()"><i class="fa-solid fa-database"></i><span>Simpan ke Database</span></button>
+    </div>
+
+    <div class="admin-sheet-tabs" id="uploadSheetTabs"></div>
+
+    <div class="admin-mapping" id="uploadMapping"></div>
+
+    <div class="admin-grid-hint">
+      <i class="fa-regular fa-keyboard"></i>
+      <span>Klik dua kali untuk mengubah sel. Pilih beberapa sel lalu Ctrl/Cmd+C &amp; Ctrl/Cmd+V seperti di Excel.</span>
+    </div>
+    <div class="admin-grid" id="uploadGrid"></div>
+  </div>
+</section>

@@ -1,0 +1,113 @@
+/* Komponen tabel PANTAU (.pantau-table) dan ikon urut kolom. */
+
+.pantau-table {
+  border-spacing: 0 !important;
+  font-size: 14px !important;
+  line-height: 20px !important;
+  color: #334155 !important;
+  background: #fff !important;
+  /* Sudut membulat ditangani wrapper agar scroll horizontal tetap berfungsi. */
+  overflow: visible !important;
+}
+
+.pantau-table thead {
+  border-radius: 0 !important;
+}
+
+.pantau-table thead tr {
+  color: #64748b !important;
+  background: #f1f5f9 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+
+.pantau-table thead th {
+  padding: 12px !important;
+  font-size: 11px !important;
+  line-height: 16px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .025em !important;
+  white-space: nowrap;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+
+.pantau-table tbody tr {
+  background: #fff !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+
+.pantau-table tbody tr:hover {
+  background: #f8fafc !important;
+}
+
+.pantau-table tbody tr:last-child {
+  border-bottom: 0 !important;
+}
+
+.pantau-table tbody td {
+  padding: 12px !important;
+  font-family: inherit !important;
+  font-size: 14px !important;
+  line-height: 20px !important;
+  border-radius: 0 !important;
+  font-weight: 400;
+  color: #334155;
+}
+
+.pantau-table th,
+.pantau-table td {
+  border-left: 0 !important;
+  border-right: 0 !important;
+}
+
+.pantau-table th.text-right,
+.pantau-table td.text-right {
+  text-align: right !important;
+}
+
+.pantau-table th.text-center,
+.pantau-table td.text-center {
+  text-align: center !important;
+}
+
+/* Warna kolom nominal mengikuti warna card ringkasan: tagihan, pembayaran, sisa. */
+.pantau-table tbody td:nth-child(4) {
+  color: #4f46e5 !important;
+}
+
+.pantau-table tbody td:nth-child(5) {
+  color: #059669 !important;
+}
+
+.pantau-table tbody td:nth-child(6) {
+  color: #f43f5e !important;
+}
+
+/* Ikon sort-range khusus header tabel Data Badan Usaha */
+.column-sort-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 18px;
+  color: #94a3b8;
+  transition: background .15s,color .15s;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+th.column-sortable {
+  cursor: pointer;
+}
+
+th.column-sortable:hover .column-sort-btn {
+  color: #334155;
+}
+
+th.column-sortable.is-sort-asc .column-sort-btn,
+th.column-sortable.is-sort-desc .column-sort-btn {
+  color: #334155;
+  background: #e2e8f0;
+}

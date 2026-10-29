@@ -1,0 +1,17 @@
+<aside class="admin-sidebar">
+  <!-- Satu grup per jenis data. Menu baru: salin satu grup dan daftarkan jenisnya di ADMIN_JENIS (navigation.js). -->
+  <nav class="flex flex-col gap-4">
+    <div class="admin-nav-group">
+      <div class="admin-nav-group-title"><i class="fa-solid fa-file-invoice-dollar"></i><span>Tagihan</span></div>
+      <button class="admin-nav" data-jenis="tagihan" data-nav="upload" type="button" onclick="showAdminPage('upload', 'tagihan')"><i class="fa-solid fa-file-arrow-up"></i><span>Upload Excel</span></button>
+      <button class="admin-nav" data-jenis="tagihan" data-nav="workspace" type="button" onclick="showAdminPage('workspace', 'tagihan')"><i class="fa-solid fa-table-cells"></i><span>Workspace</span></button>
+      <button class="admin-nav" data-jenis="tagihan" data-nav="riwayat" type="button" onclick="showAdminPage('riwayat', 'tagihan')"><i class="fa-solid fa-clock-rotate-left"></i><span>Riwayat Perubahan</span></button>
+    </div>
+    <div class="admin-nav-group">
+      <div class="admin-nav-group-title"><i class="fa-solid fa-money-bill-transfer"></i><span>Pembayaran</span></div>
+      <button class="admin-nav" data-jenis="pembayaran" data-nav="upload" type="button" onclick="showAdminPage('upload', 'pembayaran')"><i class="fa-solid fa-file-arrow-up"></i><span>Upload Excel</span></button>
+      <button class="admin-nav" data-jenis="pembayaran" data-nav="workspace" type="button" onclick="showAdminPage('workspace', 'pembayaran')"><i class="fa-solid fa-table-cells"></i><span>Workspace</span></button>
+      <button class="admin-nav" data-jenis="pembayaran" data-nav="riwayat" type="button" onclick="showAdminPage('riwayat', 'pembayaran')"><i class="fa-solid fa-clock-rotate-left"></i><span>Riwayat Perubahan</span></button>
+    </div>
+  </nav>
+</aside>

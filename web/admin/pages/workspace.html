@@ -1,0 +1,35 @@
+<section class="admin-page hidden" id="page-workspace">
+  <div class="admin-page-head">
+    <div>
+      <span class="admin-page-kicker" data-jenis-label></span>
+      <h2>Workspace</h2>
+      <p>Ubah data <span data-jenis-label></span> langsung seperti spreadsheet. Perubahan baru masuk ke database setelah tombol Simpan ditekan.</p>
+    </div>
+  </div>
+
+  <div class="admin-card">
+    <div class="admin-toolbar">
+      <label class="admin-field">
+        <span>Bulan</span>
+        <select class="admin-select" id="workspaceMonth" onchange="changeWorkspaceMonth(this.value)"></select>
+      </label>
+      <label class="admin-field admin-field-grow">
+        <span>Cari</span>
+        <div class="admin-search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input id="workspaceSearch" placeholder="Cari Nama BU / Kode..." type="search" oninput="filterWorkspace(this.value)"/>
+        </div>
+      </label>
+      <div class="admin-toolbar-spacer"></div>
+      <button class="admin-btn admin-btn-ghost" type="button" onclick="addWorkspaceRow()"><i class="fa-solid fa-plus"></i><span>Tambah baris</span></button>
+      <button class="admin-btn admin-btn-ghost" type="button" onclick="deleteWorkspaceRows()"><i class="fa-solid fa-trash-can"></i><span>Hapus baris terpilih</span></button>
+      <button class="admin-btn admin-btn-ghost" id="workspaceResetButton" type="button" onclick="resetWorkspace()" disabled><i class="fa-solid fa-rotate-left"></i><span>Batalkan</span></button>
+      <button class="admin-btn admin-btn-primary pantau-green-active" id="workspaceSaveButton" type="button" onclick="saveWorkspace()" disabled><i class="fa-solid fa-floppy-disk"></i><span>Simpan perubahan</span></button>
+    </div>
+    <div class="admin-grid-hint">
+      <i class="fa-regular fa-keyboard"></i>
+      <span id="workspaceStatus">Pilih bulan untuk memuat data.</span>
+    </div>
+    <div class="admin-grid admin-grid-tall" id="workspaceGrid"></div>
+  </div>
+</section>

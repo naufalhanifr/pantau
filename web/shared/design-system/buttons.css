@@ -1,0 +1,59 @@
+/* Tombol: hover hijau global, tombol aktif, dan mode grafik. Ukuran tombol pagination ada di pagination.css. */
+
+.trend-mode-btn {
+  color: #64748b;
+  border: 1px solid transparent;
+  transition: all .18s ease;
+  white-space: nowrap;
+  padding: .38rem .60rem;
+  font-size: .74rem;
+  line-height: 1.2;
+}
+
+.trend-mode-btn.active {
+  box-shadow: 0 4px 12px rgba(5,150,105,.22);
+}
+
+.pantau-green-active {
+  box-shadow: 0 4px 12px rgba(5,150,105,.18) !important;
+}
+
+/* Tombol aktif (pagination, mode grafik) tetap hijau tua, termasuk saat hover. */
+.pantau-green-active,
+.pantau-green-active:hover,
+.trend-mode-btn.active,
+.trend-mode-btn.active:hover {
+  color: #fff !important;
+  background: linear-gradient(135deg, #0f766e, #059669) !important;
+  border-color: #047857 !important;
+  filter: none !important;
+}
+
+@media(max-width:640px) {
+  .trend-mode-switch {
+    width: 100%;
+  }
+  .trend-mode-btn {
+    flex: 1;
+    padding: .35rem .25rem;
+    font-size: .66rem;
+  }
+  .trend-mode-btn i {
+    margin-right: .2rem;
+  }
+}
+
+/* Semua tombol lain (termasuk pagination dan mode grafik non-aktif) memakai hover hijau muda. */
+button:not(:disabled):not(.pantau-green-active):not(.pantau-sidebar-active):not(.trend-mode-btn.active):not(.pantau-dialog-confirm):hover {
+  background-color: #d1fae5 !important;
+  border-color: #6ee7b7 !important;
+  color: #047857 !important;
+  transition: background-color .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease;
+}
+
+.trend-mode-btn:disabled:hover,
+.trend-mode-btn[aria-disabled="true"]:hover {
+  color: #94a3b8 !important;
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}

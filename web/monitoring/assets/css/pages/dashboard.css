@@ -1,0 +1,66 @@
+/* Menu Dashboard. Jarak antar-blok ditulis sebagai class di dashboard.html; warna tombol aktif ada di buttons.css. */
+
+/* Kartu ringkasan menyesuaikan ruang yang tersedia, tanpa ukuran lebar/tinggi tetap. */
+#summaryCards {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+}
+
+/* Kartu tabel peringkat: padding 20px, 16px di layar kecil. */
+.dashboard-table-card {
+  padding: 20px;
+}
+
+/* Label kartu ringkasan: menimpa line-height 1.5 dari common.css. */
+#summaryCards .summary-card p {
+  line-height: 1.25rem !important;
+  font-weight: 700 !important;
+}
+
+.top-table-pagination {
+  min-height: 40px;
+}
+
+.trend-period-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  min-height: 28px;
+  margin: 4px 0 12px;
+  line-height: 1.25;
+}
+
+.trend-period-row #trendPeriodLabel {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+}
+
+#chartTrend {
+  position: relative;
+  z-index: 1;
+}
+
+#dashboardPage #successNotice #successText {
+  display: block !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  line-height: 1.45 !important;
+}
+
+#dashboardPage #successNotice > i {
+  flex: 0 0 auto !important;
+}
+
+@media (max-width: 640px) {
+  .dashboard-table-card {
+    padding: 16px;
+  }
+  #dashboardPage .pantau-table thead th,
+  #dashboardPage .pantau-table tbody td {
+    padding: 10px 12px !important;
+  }
+  .trend-period-row {
+    margin: 4px 0 10px;
+  }
+}

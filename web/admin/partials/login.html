@@ -1,0 +1,17 @@
+<section class="admin-login" id="adminLogin">
+  <div class="pantau-login-card">
+    <div class="pantau-login-icon"><i class="fa-solid fa-user-shield"></i></div>
+    <div class="pantau-login-badge"><i class="fa-solid fa-lock"></i><span>KHUSUS ADMIN</span></div>
+    <h2>Masuk PANTAU Admin</h2>
+    <p class="pantau-login-description">Kelola data tagihan dan pembayaran yang tampil di web monitoring.</p>
+    <form autocomplete="off" onsubmit="return adminLogin(event)">
+      <label class="pantau-password-wrap" for="adminPassword">
+        <input id="adminPassword" type="password" placeholder="Masukkan kata sandi admin" autocomplete="current-password" required/>
+        <button class="pantau-password-toggle" type="button" aria-label="Tampilkan kata sandi" onclick="toggleAdminPassword()"><i id="adminPasswordEye" class="fa-solid fa-eye"></i></button>
+      </label>
+      <p class="pantau-login-error hidden" id="adminLoginError">Kata sandi tidak sesuai.</p>
+      <button class="pantau-login-submit" type="submit"><span>Masuk</span></button>
+    </form>
+    <div class="pantau-login-footer"><i class="fa-solid fa-shield-halved"></i><span>Data Internal BPJS Kesehatan KC Bekasi</span></div>
+  </div>
+</section>

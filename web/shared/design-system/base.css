@@ -1,0 +1,18 @@
+/* Dasar design system PANTAU: radius 8px seragam dan chevron select. */
+
+/* Seluruh komponen yang menggunakan sudut membulat diseragamkan ke 8px. */
+*,
+*::before,
+*::after {
+  border-radius: 8px !important;
+}
+
+/* Chevron konsisten untuk seluruh elemen select/dropdown native di PANTAU. */
+select:not(#employeePageSize) {
+  appearance: none !important;
+  padding-right: 2rem !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 20 20'%3E%3Cpath d='m5.5 7.5 4.5 4.5 4.5-4.5' fill='none' stroke='%2364748b' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.65rem center !important;
+  background-size: 16px 16px !important;
+}

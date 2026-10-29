@@ -1,0 +1,107 @@
+/* Popup Detail Badan Usaha. */
+
+#businessDetailModal table.pantau-table tbody tr,
+#businessDetailModal table.pantau-table tbody tr:hover {
+  background: #ffffff !important;
+}
+
+#businessDetailModal #businessDetailHistory td:nth-child(2) {
+  color: #4f46e5 !important;
+}
+
+#businessDetailModal #businessDetailHistory td:nth-child(3) {
+  color: #059669 !important;
+}
+
+#businessDetailModal #businessDetailHistory td:nth-child(4) {
+  color: #e11d48 !important;
+}
+
+#businessDetailModal #businessDetailTableScroll,
+#businessDetailModal #businessDetailTableScroll.overflow-x-auto,
+#businessDetailModal #businessDetailTableScroll.pantau-table,
+#businessDetailModal #businessDetailTableScroll table,
+#businessDetailModal #businessDetailTableScroll thead,
+#businessDetailModal #businessDetailTableScroll tbody,
+#businessDetailModal #businessDetailTableScroll tr,
+#businessDetailModal #businessDetailTableScroll th,
+#businessDetailModal #businessDetailTableScroll td {
+  -webkit-border-radius: 0px !important;
+}
+
+#businessDetailModal #businessDetailTableScroll {
+  overflow-y: hidden !important;
+}
+
+/* Popup Detail: header netral mengikuti design system PANTAU; aksen warna hanya pada teks nominal */
+#businessDetailModal .pantau-table thead th {
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+#businessDetailModal .pantau-table thead th:nth-child(2) {
+  color: #4f46e5 !important;
+}
+
+#businessDetailModal .pantau-table thead th:nth-child(3) {
+  color: #059669 !important;
+}
+
+#businessDetailModal .pantau-table thead th:nth-child(4) {
+  color: #e11d48 !important;
+}
+
+#businessDetailModal .pantau-table tbody tr:hover {
+  background: #f8fafc !important;
+}
+
+#businessDetailModal .pantau-table tbody tr:hover td,
+#businessDetailModal .pantau-table tbody tr:hover td:nth-child(1),
+#businessDetailModal .pantau-table tbody tr:hover td:nth-child(2),
+#businessDetailModal .pantau-table tbody tr:hover td:nth-child(3),
+#businessDetailModal .pantau-table tbody tr:hover td:nth-child(4) {
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+#businessDetailModal .pantau-table tbody tr {
+  cursor: default;
+}
+
+/* Popup Detail: paksa seluruh sudut header tabel menjadi siku, termasuk style global dan pseudo-element. */
+#businessDetailModal #businessDetailTableScroll,
+#businessDetailModal #businessDetailTableScroll table.pantau-table,
+#businessDetailModal #businessDetailTableScroll table.pantau-table thead,
+#businessDetailModal #businessDetailTableScroll table.pantau-table thead tr,
+#businessDetailModal #businessDetailTableScroll table.pantau-table thead th,
+#businessDetailModal #businessDetailTableScroll table.pantau-table thead th:first-child,
+#businessDetailModal #businessDetailTableScroll table.pantau-table thead th:last-child {
+  clip-path: none !important;
+}
+
+#businessDetailModal #businessDetailTableScroll table.pantau-table thead th::before,
+#businessDetailModal #businessDetailTableScroll table.pantau-table thead th::after {
+  border-radius: 0px !important;
+}
+
+/* Samakan warna hover popup Detail dengan tabel PANTAU lainnya: slate-50 (#f8fafc). */
+#businessDetailModal #businessDetailTableScroll table.pantau-table > tbody > tr {
+  transition: background-color 160ms ease-in-out !important;
+}
+
+#businessDetailModal #businessDetailTableScroll table.pantau-table > tbody > tr:hover,
+#businessDetailModal #businessDetailTableScroll table.pantau-table > tbody > tr:focus-within {
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+}
+
+#businessDetailModal #businessDetailTableScroll table.pantau-table > tbody > tr:hover > td,
+#businessDetailModal #businessDetailTableScroll table.pantau-table > tbody > tr:focus-within > td {
+  background: #f8fafc !important;
+  background-color: #f8fafc !important;
+  background-image: none !important;
+}
+
+#businessDetailModal #businessDetailTableScroll table.pantau-table > tbody > tr:hover > td *,
+#businessDetailModal #businessDetailTableScroll table.pantau-table > tbody > tr:focus-within > td * {
+  transition: color 160ms ease-in-out;
+}

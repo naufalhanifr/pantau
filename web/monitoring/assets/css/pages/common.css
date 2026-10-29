@@ -1,0 +1,98 @@
+/* Ritme bersama halaman Dashboard dan Daftar Badan Usaha. */
+
+#dashboardPage,
+#monitoringPage {
+  flex-direction: column;
+}
+
+#dashboardPage:not(.hidden),
+#monitoringPage:not(.hidden) {
+  display: flex;
+}
+
+#dashboardPage h2,
+#monitoringPage h2 {
+  font-size: clamp(1.5rem,2.2vw,1.875rem);
+  line-height: 1.25;
+}
+
+#dashboardPage p.text-sm.text-slate-500,
+#monitoringPage p.text-sm.text-slate-500 {
+  line-height: 1.5;
+}
+
+#dashboardPage select,
+#dashboardPage input,
+#monitoringPage select,
+#monitoringPage input {
+  font-size: .875rem;
+}
+
+/* Permintaan: hilangkan jarak antar-div pada area konten Dashboard dan Monitoring. */
+#dashboardPage,
+#monitoringPage {
+  gap: 0 !important;
+}
+
+/* Nolkan margin pada dua deskripsi periode yang diminta. */
+#dashboardPage > div:first-child > p,
+#monitoringPage p.text-sm.text-slate-500.mt-1 {
+  margin: 0 !important;
+}
+
+#dashboardPage .pantau-table,
+#monitoringPage .pantau-table {
+  border-radius: 0 !important;
+  clip-path: none !important;
+}
+
+/* Final shared table rules: every table uses square wrapper and square header cells. */
+.pantau-table-wrapper,
+.pantau-table-scroll,
+.pantau-table-container,
+#monitoringTableScroll,
+#dashboardPage .overflow-x-auto:has(.pantau-table),
+#monitoringPage .overflow-x-auto:has(.pantau-table),
+.pantau-table {
+  border-radius: 0 !important;
+}
+
+/* Remove wrapper borders consistently from every table section, without changing cell borders or spacing. */
+#dashboardPage .pantau-table-wrapper,
+#dashboardPage .pantau-table-scroll,
+#dashboardPage .pantau-table-container,
+#dashboardPage #monitoringTableScroll,
+#dashboardPage .overflow-x-auto:has(.pantau-table),
+#monitoringPage .pantau-table-wrapper,
+#monitoringPage .pantau-table-scroll,
+#monitoringPage .pantau-table-container,
+#monitoringPage #monitoringTableScroll,
+#monitoringPage .overflow-x-auto:has(.pantau-table),
+#dashboardPage .pantau-table-wrapper:has(.pantau-table),
+#monitoringPage .pantau-table-wrapper:has(.pantau-table) {
+  border: 0 !important;
+  outline: 0 !important;
+}
+
+/* Paragraphs in table cards, including the descriptive text above each table, use text-sm. */
+#dashboardPage .bg-white:has(.pantau-table) p,
+#monitoringPage .bg-white:has(.pantau-table) p {
+  font-size: .875rem !important;
+  line-height: 1.25rem !important;
+}
+
+#dashboardPage select#globalMonth,
+#dashboardPage select#globalStartMonth,
+#monitoringPage select#monitorStartMonth,
+#monitoringPage select#monitorEndMonth,
+select#globalMonth,
+select#globalStartMonth,
+select#monitorStartMonth,
+select#monitorEndMonth {
+  clip-path: inset(0 round 8px) !important;
+}
+
+#monitoringPage #monitoringMonthFilter.grid.grid-cols-2,
+#dashboardPage #dashboardMonthFilter.grid.grid-cols-2 {
+  gap: 12px !important;
+}

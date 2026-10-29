@@ -1,0 +1,181 @@
+/* Kerangka halaman: header, sidebar, area konten, footer. */
+
+/* Sidebar sizing is controlled by one class so flex layout stays stable. */
+#appSidebar {
+  width: 240px;
+  overflow: hidden;
+  height: calc(100vh - var(--pantau-header-height, 90px));
+}
+
+#appSidebar .sidebar-nav {
+  white-space: nowrap;
+  min-width: 0;
+  min-height: 42px;
+  padding-top: .65rem;
+  padding-bottom: .65rem;
+}
+
+#appSidebar .sidebar-nav > i {
+  flex: 0 0 20px;
+}
+
+#appSidebar.sidebar-collapsed .sidebar-nav {
+  padding-left: .5rem;
+  padding-right: .5rem;
+}
+
+#appSidebar nav {
+  gap: .35rem;
+  padding-top: .65rem;
+}
+
+#mainContent {
+  transition: margin-left .2s ease, width .2s ease;
+}
+
+/* Keep the sidebar pinned to the viewport for the entire document scroll. */
+#appSidebar {
+  overflow-y: auto;
+}
+
+/* Footer must render above the fixed sidebar when the page reaches the bottom. */
+#appFooter {
+  position: relative;
+  z-index: 40;
+}
+
+body.sidebar-is-collapsed #mainContent {
+  margin-left: 68px !important;
+}
+
+@media (max-width: 640px) {
+  body.sidebar-is-expanded-mobile #mainContent {
+    margin-left: 210px !important;
+  }
+}
+
+#appSidebar .sidebar-nav.pantau-sidebar-active {
+  box-shadow: 0 4px 12px rgba(5,150,105,.18) !important;
+}
+
+#appSidebar .sidebar-nav.pantau-sidebar-active:hover {
+  background: linear-gradient(135deg,#0f766e,#059669) !important;
+}
+
+#appSidebar.sidebar-collapsed #sidebarToggle {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+#appSidebar {
+  border: 0 !important;
+  border-right: 1px solid #e2e8f0 !important;
+  border-radius: 0 !important;
+}
+
+#appSidebar::before,
+#appSidebar::after {
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* Sidebar: item aktif tetap hijau tua, item lain mendapat hover hijau muda. */
+#appSidebar .sidebar-nav:not(.pantau-sidebar-active):hover {
+  background: #d1fae5 !important;
+  border-color: #6ee7b7 !important;
+  color: #047857 !important;
+}
+
+#appSidebar .sidebar-nav.pantau-sidebar-active,
+#appSidebar .sidebar-nav.pantau-sidebar-active:hover {
+  color: #fff !important;
+  background: linear-gradient(135deg, #0f766e, #059669) !important;
+}
+
+#mainContent,
+body #mainContent {
+  overflow-x: hidden;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+main.w-full.flex-grow {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 0 auto !important;
+  min-height: 0 !important;
+}
+
+main.w-full.flex-grow > .flex.min-h-\[calc\(100vh-90px\)\] {
+  flex: 1 0 auto !important;
+  min-height: 0 !important;
+}
+
+#appFooter {
+  flex-shrink: 0 !important;
+}
+
+/* Use one shared flex layout for every menu. Sidebar occupies its own column; content never sits beneath it. */
+main.w-full.flex-grow > div.flex.min-h-\[calc\(100vh-90px\)\] {
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+#appSidebar.sidebar-collapsed {
+  width: 68px !important;
+  flex: 0 0 68px !important;
+}
+
+#mainContent,
+body #mainContent {
+  position: relative !important;
+}
+
+@media (max-width: 640px) {
+  #appSidebar:not(.sidebar-collapsed) {
+    flex-basis: 210px !important;
+  }
+  #appSidebar:not(.sidebar-collapsed) {
+    width: 210px !important;
+  }
+}
+
+/* Sidebar stays sticky in the layout flow, so it never covers the page content. */
+main.w-full.flex-grow > div.flex.min-h-\[calc\(100vh-90px\)\] {
+  align-items: flex-start !important;
+}
+
+/* Sidebar stays pinned to the viewport at every scroll position; content reserves its own column. */
+#appSidebar {
+  position: fixed !important;
+  bottom: 0 !important;
+  max-height: none !important;
+  align-self: auto !important;
+  z-index: 40 !important;
+  flex: none !important;
+}
+
+#mainContent,
+body #mainContent {
+  margin-left: 240px !important;
+  max-width: calc(100% - 240px) !important;
+  flex: 1 1 auto !important;
+}
+
+body.sidebar-is-collapsed #mainContent,
+body.sidebar-is-collapsed #mainContent {
+  max-width: calc(100% - 68px) !important;
+}
+
+@media (max-width: 640px) {
+  body.sidebar-is-expanded-mobile #mainContent {
+    max-width: calc(100% - 210px) !important;
+  }
+  body:not(.sidebar-is-expanded-mobile) #mainContent {
+    margin-left: 68px !important;
+    max-width: calc(100% - 68px) !important;
+  }
+}

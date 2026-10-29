@@ -1,0 +1,68 @@
+/* Modal konfirmasi bersama (monitoring + admin). Dipanggil lewat pantauConfirm() di confirm-dialog.js. */
+
+.pantau-dialog {
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  margin: auto;
+  padding: 0;
+  border: 1px solid #dbe5ef;
+  border-radius: 8px;
+  background: #fff;
+  color: #0f172a;
+  box-shadow: 0 24px 48px -16px rgba(15, 23, 42, .35), 0 4px 12px -4px rgba(15, 23, 42, .12);
+}
+.pantau-dialog[open] { animation: pantau-dialog-in .16s ease; }
+.pantau-dialog::backdrop { background: rgba(15, 23, 42, .45); backdrop-filter: blur(2px); }
+@keyframes pantau-dialog-in { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+
+.pantau-dialog-body { display: flex; gap: 14px; padding: 22px 22px 18px; }
+.pantau-dialog-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: #ecfdf5;
+  color: #059669;
+  font-size: 19px;
+}
+.pantau-dialog-title { margin: 2px 0 6px; font-size: 17px; font-weight: 800; line-height: 1.35; }
+.pantau-dialog-message { margin: 0; color: #475569; font-size: 14px; line-height: 1.6; white-space: pre-line; overflow-wrap: anywhere; }
+
+.pantau-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 22px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+.pantau-dialog-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.pantau-dialog-btn:focus-visible { outline: 2px solid #10b981; outline-offset: 2px; }
+.pantau-dialog-confirm { border-color: #047857; background: linear-gradient(135deg, #0f766e, #059669); color: #fff; box-shadow: 0 4px 12px rgba(5, 150, 105, .18); }
+.pantau-dialog-confirm:hover { filter: brightness(.94); }
+
+/* Varian bahaya: hapus data, buang perubahan. */
+.pantau-dialog-danger .pantau-dialog-icon { background: #fff1f2; color: #e11d48; }
+.pantau-dialog-danger .pantau-dialog-confirm { border-color: #be123c; background: #e11d48; box-shadow: 0 4px 12px rgba(225, 29, 72, .2); }
+
+@media (max-width: 480px) {
+  .pantau-dialog-body { flex-direction: column; gap: 10px; }
+  .pantau-dialog-actions .pantau-dialog-btn { flex: 1 1 auto; }
+}

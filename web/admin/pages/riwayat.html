@@ -1,0 +1,27 @@
+<section class="admin-page hidden" id="page-riwayat">
+  <div class="admin-page-head">
+    <div>
+      <span class="admin-page-kicker" data-jenis-label></span>
+      <h2>Riwayat Perubahan</h2>
+      <p>Catatan setiap upload Excel dan penyimpanan dari workspace untuk data <span data-jenis-label></span>.</p>
+    </div>
+    <button class="admin-btn admin-btn-ghost" type="button" onclick="loadHistory()"><i class="fa-solid fa-rotate"></i><span>Muat ulang</span></button>
+  </div>
+  <div class="admin-card">
+    <div class="overflow-x-auto">
+      <table class="pantau-table w-full text-left border-collapse min-w-[720px]">
+        <thead>
+          <tr>
+            <th>Waktu</th>
+            <th>Sumber</th>
+            <th>Jenis</th>
+            <th>Bulan</th>
+            <th class="text-right">Baris Disimpan</th>
+            <th class="text-right">Baris Dihapus</th>
+          </tr>
+        </thead>
+        <tbody id="historyBody"><tr><td class="admin-empty" colspan="6">Memuat riwayat...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
