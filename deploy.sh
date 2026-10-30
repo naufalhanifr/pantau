@@ -8,7 +8,7 @@ HOST=pantau@103.93.135.213
 APP=/var/www/pantau
 SSH="ssh -i $HOME/.ssh/NAUFAL -o IdentitiesOnly=yes"
 
-EXCLUDES=(--exclude /.git --exclude /.venv --exclude /tests --exclude __pycache__ --exclude .DS_Store --exclude /CLAUDE.md)
+EXCLUDES=(--exclude /.git --exclude /.venv --exclude /tests --exclude __pycache__ --exclude .DS_Store --exclude /CLAUDE.md --exclude /nginx-admin.conf)
 [ "${1:-}" = "--with-data" ] || EXCLUDES+=(--exclude /Data)
 
 rsync -az --delete "${EXCLUDES[@]}" -e "$SSH" ./ "$HOST:$APP/"
