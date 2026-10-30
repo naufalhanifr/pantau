@@ -11,37 +11,48 @@
 
 <!-- Design system bersama monitoring -->
 <link href="/shared/design-system/base.css" rel="stylesheet"/>
+<link href="/shared/design-system/layout.css" rel="stylesheet"/>
+<link href="/shared/design-system/app-shell.css" rel="stylesheet"/>
+<link href="/shared/design-system/card.css" rel="stylesheet"/>
 <link href="/shared/design-system/table.css" rel="stylesheet"/>
 <link href="/shared/design-system/buttons.css" rel="stylesheet"/>
 <link href="/shared/design-system/login-card.css" rel="stylesheet"/>
 <link href="/shared/design-system/confirm-dialog.css" rel="stylesheet"/>
 <link href="/shared/design-system/select-menu.css" rel="stylesheet"/>
 <link href="/shared/design-system/dropdown-list.css" rel="stylesheet"/>
+<link href="/shared/design-system/search-bar.css" rel="stylesheet"/>
 <!-- Admin -->
 <link href="/admin/assets/css/admin.css" rel="stylesheet"/>
 <link href="/admin/assets/css/spreadsheet.css" rel="stylesheet"/>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen">
 <!-- @include partials/login.html -->
-<div class="hidden" id="adminApp">
+<div class="pantau-app hidden" id="adminApp">
 <!-- @include partials/header.html -->
-<div class="admin-shell">
+<div class="pantau-shell">
 <!-- @include partials/sidebar.html -->
-<main class="admin-content" id="adminContent">
+<main class="pantau-main pantau-content" id="adminContent">
 <!-- @include pages/upload.html -->
 <!-- @include pages/workspace.html -->
 <!-- @include pages/riwayat.html -->
 </main>
 </div>
+<footer class="pantau-footer">
+  <p>by Naufal Hanif Ramadhan | BPJS Kesehatan KC Bekasi</p>
+</footer>
 </div>
 <div class="admin-toast-stack" id="toastStack" aria-live="polite"></div>
 
+<script src="/shared/design-system/scroll-top.js"></script>
 <script src="/shared/design-system/confirm-dialog.js"></script>
+<script src="/shared/design-system/dropdown-list.js"></script>
 <script src="/shared/design-system/select-menu.js"></script>
+<script src="/shared/design-system/dropdown-scroll-indicator.js"></script>
 <script src="/admin/assets/js/core/format.js"></script>
 <script src="/admin/assets/js/core/api.js"></script>
 <script src="/admin/assets/js/core/toast.js"></script>
 <script src="/admin/assets/js/core/auth.js"></script>
+<script src="/shared/design-system/app-shell.js"></script>
 <script src="/admin/assets/js/layout/navigation.js"></script>
 <script src="/admin/assets/js/components/spreadsheet.js"></script>
 <script src="/admin/assets/js/pages/upload.js"></script>

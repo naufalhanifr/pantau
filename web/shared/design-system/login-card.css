@@ -83,6 +83,11 @@
   color: #0f172a;
 }
 
+/* Kata sandi yang tidak boleh disimpan browser: field teks dengan karakter disamarkan. */
+.pantau-password-wrap input.is-masked {
+  -webkit-text-security: disc;
+}
+
 .pantau-password-wrap input::placeholder {
   color: #94a3b8;
 }

@@ -2,8 +2,8 @@
 // Dashboard disajikan oleh backend PANTAU yang juga menyediakan API database.
 const API_BASE_URL = "";
 
-async function apiGet(path) {
-    const response = await fetch(`${API_BASE_URL}${path}`);
+async function apiGet(path, init) {
+    const response = await fetch(`${API_BASE_URL}${path}`, init);
     const body = await response.text();
     if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${body || "Tidak ada detail error."}`);

@@ -42,20 +42,5 @@ function openBusinessDetail(kodeBU) {
         });
     }
 
-    const modal = document.getElementById("businessDetailModal");
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
-    document.body.classList.add("overflow-hidden");
+    pantauOpenDetailModal("businessDetailModal");
 }
-
-function closeBusinessDetail() {
-    const modal = document.getElementById("businessDetailModal");
-    if (!modal) return;
-    modal.classList.add("hidden");
-    modal.classList.remove("flex");
-    document.body.classList.remove("overflow-hidden");
-}
-
-document.addEventListener("keydown", event => {
-    if (event.key === "Escape") closeBusinessDetail();
-});

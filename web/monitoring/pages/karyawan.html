@@ -1,12 +1,13 @@
-<section class="hidden space-y-5" id="employeesPage" style="margin-top:0!important;">
-  <div id="employeeLoginPanel" class="pantau-login-card" style="display:block; margin:0 auto 24px !important;">
+<section class="hidden" id="employeesPage">
+  <div id="employeeLoginPanel" class="pantau-login-card max-w-full mx-auto mb-6">
     <div class="pantau-login-icon"><i class="fa-solid fa-shield-halved"></i></div>
     <div class="pantau-login-badge"><i class="fa-solid fa-lock"></i><span>AKSES TERBATAS</span></div>
     <h2>Masuk Data Karyawan</h2>
     <p class="pantau-login-description">Masukkan kata sandi untuk mengakses data karyawan.</p>
-    <form id="employeeLoginForm" autocomplete="off" onsubmit="return employeeDemoLogin(event)">
+    <form id="employeeLoginForm" autocomplete="off" onsubmit="return employeeLogin(event)">
       <label class="pantau-password-wrap" for="employeeLoginPassword">
-        <input id="employeeLoginPassword" name="pantau-temporary-access-code" type="password" placeholder="Masukkan kata sandi" autocomplete="off" autocapitalize="off" spellcheck="false" required />
+        <!-- Sengaja bukan type="password" agar browser tidak menawarkan simpan kata sandi; disamarkan lewat .is-masked. -->
+        <input id="employeeLoginPassword" class="is-masked" type="text" placeholder="Masukkan kata sandi" aria-label="Kata sandi" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" required />
         <button class="pantau-password-toggle" type="button" aria-label="Tampilkan kata sandi" onclick="toggleEmployeePassword()"><i id="employeePasswordEye" class="fa-solid fa-eye"></i></button>
       </label>
       <p id="employeeLoginError" class="pantau-login-error hidden">Kata sandi tidak sesuai.</p>
@@ -14,32 +15,33 @@
     </form>
     <div class="pantau-login-footer"><i class="fa-solid fa-shield-halved"></i><span>Data Internal BPJS Kesehatan KC Bekasi</span></div>
   </div>
-  <div id="employeesProtectedContent" class="hidden" style="margin-top:0!important;">
-
-  <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-6" style="margin-bottom:24px!important;">
-    <div class="min-w-0 flex-1">
-      <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Daftar Karyawan</h2>
-      <p class="text-sm text-slate-500 mt-1">Daftar peserta dan anggota keluarga yang tercantum pada file sumber badan usaha.</p>
-    </div>
-  </div>
-  <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
-    <div class="p-5 bg-white border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
-      <div class="flex items-center gap-3 min-w-0">
-        <div>
-          <h3 class="text-lg font-bold text-slate-900">Data Karyawan</h3>
-          <p class="text-sm text-slate-500" id="employeeCountLabel" style="font-size:14px!important;">Menyiapkan data karyawan...</p>
-        </div>
+  <div id="employeesProtectedContent" class="pantau-page hidden">
+    <div class="pantau-page-head flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+      <div class="min-w-0 flex-1">
+        <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Daftar Karyawan Periode <span id="employeePeriodLabel"></span></h2>
+        <p class="text-sm text-slate-500 mt-1">Daftar peserta dan anggota keluarga yang tercantum pada file sumber badan usaha.</p>
       </div>
-      <div id="employeeFilters" class="employee-filters" aria-label="Filter data karyawan">
-        <div class="employee-business-combo" id="employeeBusinessCombo">
-          <div class="employee-filter-field employee-business-field">
-            <input id="employeeBusinessFilter" type="text" placeholder="Semua Badan Usaha" aria-label="Cari dan pilih badan usaha" aria-autocomplete="list" aria-controls="employeeBusinessDropdown" aria-expanded="false" autocomplete="off" onfocus="openEmployeeBusinessDropdown()" oninput="this.dataset.selectedBusiness=''; filterEmployeeBusinessOptions(); filterEmployees()" onkeydown="handleEmployeeBusinessKeydown(event)">
-            <button type="button" class="employee-business-toggle" aria-label="Tampilkan daftar badan usaha" onclick="toggleEmployeeBusinessDropdown()"><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
-          </div>
-          <div id="employeeBusinessDropdown" class="employee-business-dropdown pantau-dropdown-list hidden" role="listbox" aria-label="Daftar badan usaha"></div>
+      <!-- Opsi bulan diisi karyawan.js dari bulan tagih yang ada di database. -->
+      <label class="block shrink-0 w-full lg:w-[180px] text-xs font-semibold text-slate-500">Bulan tagih
+        <select class="pantau-select w-full" id="employeeMonthFilter" aria-label="Bulan tagih" onchange="loadEmployeeMeta()"></select>
+      </label>
+    </div>
+    <div class="pantau-card overflow-hidden">
+      <div class="mb-4 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="min-w-0">
+          <h3 class="text-lg font-bold text-slate-900">Data Karyawan</h3>
+          <p class="text-sm text-slate-500" id="employeeCountLabel">Menyiapkan data karyawan...</p>
         </div>
-        <div class="employee-custom-select" id="employeeStatusCombo">
-          <select id="employeeStatusFilter" aria-label="Filter status peserta" onchange="syncEmployeeCustomSelect('employeeStatusCombo', this)">
+        <div id="employeeFilters" aria-label="Filter data karyawan">
+          <!-- Combobox badan usaha: bisa diketik untuk mencari, daftar opsi dirender karyawan.js. -->
+          <div class="employee-business-combo" id="employeeBusinessCombo">
+            <div class="employee-business-field">
+              <input id="employeeBusinessFilter" type="text" placeholder="Semua Badan Usaha" aria-label="Cari dan pilih badan usaha" aria-autocomplete="list" aria-controls="employeeBusinessDropdown" aria-expanded="false" autocomplete="off" onfocus="openEmployeeBusinessDropdown()" oninput="this.dataset.selectedBusiness=''; openEmployeeBusinessDropdown(); filterEmployees()" onkeydown="handleEmployeeBusinessKeydown(event)">
+              <button type="button" class="employee-business-toggle" aria-label="Tampilkan daftar badan usaha" onclick="toggleEmployeeBusinessDropdown()"><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
+            </div>
+            <div id="employeeBusinessDropdown" class="pantau-dropdown-list hidden" role="listbox" aria-label="Daftar badan usaha"></div>
+          </div>
+          <select class="pantau-select" id="employeeStatusFilter" aria-label="Filter status peserta" onchange="filterEmployees()">
             <option value="">Semua Status</option>
             <option value="Peserta">Peserta</option>
             <option value="Istri">Istri</option>
@@ -47,56 +49,76 @@
             <option value="Anak">Anak</option>
             <option value="Keluarga Tambahan">Keluarga Tambahan</option>
           </select>
-          <button type="button" class="employee-custom-select-trigger" aria-haspopup="listbox" aria-expanded="false" onclick="toggleEmployeeSimpleDropdown('employeeStatusCombo')"><span>Semua Status</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
-          <div class="employee-simple-dropdown pantau-dropdown-list hidden" role="listbox" aria-label="Pilihan status">
-            <button type="button" class="employee-business-option pantau-dropdown-option selected" role="option" aria-selected="true" data-value="" onclick="chooseEmployeeSimpleOption('employeeStatusCombo', this)">Semua Status<i class="fa-solid fa-check" aria-hidden="true"></i></button>
-            <button type="button" class="employee-business-option pantau-dropdown-option" role="option" aria-selected="false" data-value="Peserta" onclick="chooseEmployeeSimpleOption('employeeStatusCombo', this)">Peserta</button>
-            <button type="button" class="employee-business-option pantau-dropdown-option" role="option" aria-selected="false" data-value="Istri" onclick="chooseEmployeeSimpleOption('employeeStatusCombo', this)">Istri</button>
-            <button type="button" class="employee-business-option pantau-dropdown-option" role="option" aria-selected="false" data-value="Suami" onclick="chooseEmployeeSimpleOption('employeeStatusCombo', this)">Suami</button>
-            <button type="button" class="employee-business-option pantau-dropdown-option" role="option" aria-selected="false" data-value="Anak" onclick="chooseEmployeeSimpleOption('employeeStatusCombo', this)">Anak</button>
-            <button type="button" class="employee-business-option pantau-dropdown-option" role="option" aria-selected="false" data-value="Keluarga Tambahan" onclick="chooseEmployeeSimpleOption('employeeStatusCombo', this)">Keluarga Tambahan</button>
+          <select class="pantau-select" id="employeePaidFilter" aria-label="Filter pembayaran bulan tagih" onchange="filterEmployees()">
+            <option value="">Semua Pembayaran</option>
+            <option value="lunas">Lunas</option>
+            <option value="nyicil">Nyicil</option>
+            <option value="belum">Belum Bayar</option>
+          </select>
+          <div class="employee-filter-search pantau-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input id="employeeSearchInput" type="text" autocomplete="off" placeholder="Cari peserta atau badan usaha" aria-label="Cari nama badan usaha, kode BU, nama peserta, nama keluarga, atau nomor JKN" oninput="filterEmployees()">
           </div>
         </div>
-        <div class="employee-filter-search relative w-full sm:w-72">
-          <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
-            <i class="fa-solid fa-magnifying-glass text-xs" aria-hidden="true"></i>
-          </span>
-          <input class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition" id="employeeSearchInput" type="text" placeholder="Cari Nama BU / Kode..." aria-label="Cari nama badan usaha, kode BU, nama peserta, nama keluarga, atau nomor JKN" oninput="filterEmployees()">
-        </div>
       </div>
-    </div>
-    <div class="overflow-x-auto" id="employeeTableScroll">
-      <table class="pantau-table w-full text-left border-collapse min-w-[620px]">
-        <thead>
-          <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wide">
-            <th class="px-3 py-3 w-12 text-left">No</th>
-            <th class="px-3 py-3">Kode BU</th>
-            <th class="px-3 py-3">Nama Badan Usaha</th>
-            <th class="px-3 py-3">No. JKN Peserta</th>
-            <th class="px-3 py-3">Nama Peserta</th>
-            <th class="px-3 py-3">No. JKN Peserta/Keluarga</th>
-            <th class="px-3 py-3">Nama Peserta/Keluarga</th>
-            <th class="px-3 py-3">Status</th>
-            <th class="px-3 py-3 text-right">Bulan Menunggak</th>
-            <th class="px-3 py-3 text-right">Nominal Tagihan</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-100 text-sm" id="employeeTableBody"></tbody>
-      </table>
-    </div>
-    <div class="p-5 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-        <span class="text-xs text-slate-500 whitespace-nowrap">Tampil:</span>
-        <div class="employee-page-size-wrap">
-          <select id="employeePageSize" onchange="changeEmployeePageSize()" aria-label="Jumlah data per halaman">
+      <div class="pantau-table-scroll" id="employeeTableScroll">
+        <table class="pantau-table">
+          <thead>
+            <tr>
+              <th class="w-12">No</th>
+              <th class="column-sortable" data-sort-column="nama_bu" onclick="sortEmployees('nama_bu')"><div class="flex items-center gap-1"><span>Nama Badan Usaha</span><span class="column-sort-btn" aria-hidden="true"><i class="fa-solid fa-sort"></i></span></div></th>
+              <th class="column-sortable" data-sort-column="nama_peserta" onclick="sortEmployees('nama_peserta')"><div class="flex items-center gap-1"><span>Nama Peserta</span><span class="column-sort-btn" aria-hidden="true"><i class="fa-solid fa-sort"></i></span></div></th>
+              <th class="column-sortable" data-sort-column="nama_keluarga" onclick="sortEmployees('nama_keluarga')"><div class="flex items-center gap-1"><span>Nama Peserta/Keluarga</span><span class="column-sort-btn" aria-hidden="true"><i class="fa-solid fa-sort"></i></span></div></th>
+              <th class="column-sortable" data-sort-column="status" onclick="sortEmployees('status')"><div class="flex items-center gap-1"><span>Status Peserta</span><span class="column-sort-btn" aria-hidden="true"><i class="fa-solid fa-sort"></i></span></div></th>
+              <th class="text-center column-sortable" data-sort-column="bulan_menunggak" onclick="sortEmployees('bulan_menunggak')"><div class="flex items-center justify-center gap-1"><span>Bulan Menunggak</span><span class="column-sort-btn" aria-hidden="true"><i class="fa-solid fa-sort"></i></span></div></th>
+              <th class="text-right column-sortable" data-sort-column="nominal_tagihan" onclick="sortEmployees('nominal_tagihan')"><div class="flex items-center justify-end gap-1"><span>Tagihan</span><span class="column-sort-btn" aria-hidden="true"><i class="fa-solid fa-sort"></i></span></div></th>
+              <th class="text-right column-sortable" data-sort-column="jumlah_bayar" onclick="sortEmployees('jumlah_bayar')"><div class="flex items-center justify-end gap-1"><span>Nominal Pembayaran</span><span class="column-sort-btn" aria-hidden="true"><i class="fa-solid fa-sort"></i></span></div></th>
+              <th class="column-sortable" data-sort-column="tanggal_bayar" onclick="sortEmployees('tanggal_bayar')"><div class="flex items-center gap-1"><span>Terakhir Pembayaran</span><span class="column-sort-btn" aria-hidden="true"><i class="fa-solid fa-sort"></i></span></div></th>
+              <th class="column-sortable" data-sort-column="status_bayar" onclick="sortEmployees('status_bayar')"><div class="flex items-center gap-1"><span>Status Bayar</span><span class="column-sort-btn" aria-hidden="true"><i class="fa-solid fa-sort"></i></span></div></th>
+              <th class="text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="employeeTableBody"></tbody>
+        </table>
+      </div>
+      <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <span class="text-xs text-slate-500 whitespace-nowrap">Tampil:</span>
+          <select class="pantau-select" id="employeePageSize" onchange="changeEmployeePageSize()" aria-label="Jumlah data per halaman">
             <option value="10" selected>10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option>
           </select>
         </div>
+        <div class="text-xs text-slate-500 max-sm:order-last max-sm:w-full" id="employeePaginationInfo">Menunggu data...</div>
+        <div class="flex flex-wrap justify-end items-center gap-1.5" id="employeePaginationControls"></div>
       </div>
-      <div class="text-xs text-slate-500" id="employeePaginationInfo">Menunggu data...</div>
-      <div class="flex items-center gap-1.5" id="employeePaginationControls"></div>
     </div>
   </div>
-
-  </div>
 </section>
+<!-- Detail karyawan: komponen design system pantau-detail-modal (detail-modal.css/.js). -->
+<dialog aria-labelledby="employeeDetailName" class="pantau-detail-modal" id="employeeDetailDialog">
+  <div class="pantau-detail-modal-header">
+    <div class="pantau-detail-modal-heading">
+      <h2 class="pantau-detail-modal-title" id="employeeDetailName">Detail Karyawan</h2>
+      <p class="pantau-detail-modal-subtitle" id="employeeDetailSubtitle">-</p>
+    </div>
+    <button aria-label="Tutup detail" class="pantau-detail-modal-close" data-modal-close type="button"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="pantau-detail-modal-body">
+    <dl class="employee-detail-info" id="employeeDetailInfo"></dl>
+    <section class="pantau-detail-modal-section">
+      <div class="pantau-detail-modal-section-head">
+        <h3>Riwayat Pembayaran</h3>
+        <p id="employeeDetailPeriod">Periode -</p>
+      </div>
+      <div class="pantau-table-scroll">
+        <table class="pantau-table min-w-[560px]">
+          <thead><tr><th>Bulan</th><th class="text-center">Bulan Menunggak</th><th class="text-right">Tagihan</th><th>Tanggal Bayar</th><th class="text-right">Jumlah Bayar</th></tr></thead>
+          <tbody id="employeeDetailHistory"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+  <div class="pantau-detail-modal-footer">
+    <button class="pantau-detail-modal-btn" data-modal-close type="button">Tutup</button>
+  </div>
+</dialog>

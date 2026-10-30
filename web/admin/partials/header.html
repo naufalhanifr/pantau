@@ -1,15 +1,22 @@
-<header class="admin-header">
-  <div class="flex items-center gap-3 min-w-0">
-    <div class="h-12 w-12 shrink-0 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md shadow-emerald-100">
-      <i class="fa-solid fa-chart-line text-white text-xl"></i>
-    </div>
-    <div class="min-w-0 flex flex-col items-start gap-0.5">
-      <h1 class="text-2xl font-extrabold tracking-tight text-slate-900 leading-tight">PANTAU <span class="admin-badge">Admin</span></h1>
-      <span class="text-xs sm:text-sm font-semibold text-emerald-700 leading-tight">Kelola Data Tagihan &amp; Pembayaran KC Bekasi</span>
+<header class="pantau-header" id="appHeader">
+  <div class="pantau-brand">
+    <div class="pantau-brand-logo"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></div>
+    <div class="pantau-brand-text">
+      <h1 class="pantau-brand-title">PANTAU <span class="admin-badge">Admin</span></h1>
+      <span class="pantau-brand-subtitle">Kelola Data Tagihan &amp; Pembayaran KC Bekasi</span>
     </div>
   </div>
-  <div class="flex items-center gap-2">
-    <a class="admin-btn admin-btn-ghost" href="/" target="_blank" rel="noopener"><i class="fa-solid fa-display"></i><span class="hidden sm:inline">Buka Monitoring</span></a>
-    <button class="admin-btn admin-btn-ghost" type="button" onclick="adminLogout()"><i class="fa-solid fa-right-from-bracket"></i><span class="hidden sm:inline">Keluar</span></button>
+  <div class="pantau-header-actions">
+    <div class="pantau-clock">
+      <i class="fa-regular fa-clock" aria-hidden="true"></i>
+      <div>
+        <p class="pantau-clock-date" data-pantau-clock="date">Memuat tanggal...</p>
+        <p class="pantau-clock-time" data-pantau-clock="time">--:--:-- WIB</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <a class="admin-btn admin-btn-ghost" href="/" target="_blank" rel="noopener" aria-label="Buka Monitoring"><i class="fa-solid fa-display"></i><span class="hidden sm:inline">Buka Monitoring</span></a>
+      <button class="admin-btn admin-btn-ghost" type="button" onclick="adminLogout()" aria-label="Keluar"><i class="fa-solid fa-right-from-bracket"></i><span class="hidden sm:inline">Keluar</span></button>
+    </div>
   </div>
 </header>

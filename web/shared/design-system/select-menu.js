@@ -2,9 +2,8 @@
 (function(){
   if(window.__pantauGlobalSelectListsInstalled) return;
   window.__pantauGlobalSelectListsInstalled=true;
-  const excluded = sel => sel.closest('#employeeFilters') || sel.classList.contains('employee-hidden-select') || sel.id==='employeeStatusFilter' || sel.id==='employeePageSize';
   function enhanceSelect(select){
-    if(!select || excluded(select) || select.dataset.pantauListEnhanced==='1' || !select.parentNode) return;
+    if(!select || select.dataset.pantauListEnhanced==='1' || !select.parentNode) return;
     select.dataset.pantauListEnhanced='1';
     const parent=select.parentNode;
     const wrap=document.createElement('div'); wrap.className='pantau-native-select-wrap';
@@ -29,11 +28,8 @@
         menu.appendChild(b);
       });
     }
-    function positionMenu(){const r=trigger.getBoundingClientRect();menu.style.left=Math.max(8,Math.min(r.left,window.innerWidth-r.width-8))+'px';menu.style.width=r.width+'px';menu.style.top=Math.min(r.bottom+6,Math.max(8,window.innerHeight-menu.offsetHeight-8))+'px';}
     function close(){menu.classList.add('hidden');trigger.setAttribute('aria-expanded','false');window.__pantauDropdownIndicatorRefresh&&window.__pantauDropdownIndicatorRefresh();}
-    trigger.addEventListener('click',()=>{const opening=menu.classList.contains('hidden');document.querySelectorAll('.pantau-native-select-menu').forEach(m=>m.classList.add('hidden'));document.querySelectorAll('.pantau-native-select-trigger').forEach(t=>t.setAttribute('aria-expanded','false'));if(opening){render();document.body.appendChild(menu);menu.classList.remove('hidden');positionMenu();trigger.setAttribute('aria-expanded','true');window.__pantauDropdownIndicatorRefresh&&window.__pantauDropdownIndicatorRefresh();}});
-    window.addEventListener('resize',()=>{if(!menu.classList.contains('hidden'))positionMenu();});
-    window.addEventListener('scroll',()=>{if(!menu.classList.contains('hidden'))positionMenu();},true);
+    trigger.addEventListener('click',()=>{const opening=menu.classList.contains('hidden');document.querySelectorAll('.pantau-native-select-menu').forEach(m=>m.classList.add('hidden'));document.querySelectorAll('.pantau-native-select-trigger').forEach(t=>t.setAttribute('aria-expanded','false'));if(opening){render();document.body.appendChild(menu);menu.classList.remove('hidden');window.pantauPlaceDropdown(trigger,menu);trigger.setAttribute('aria-expanded','true');window.__pantauDropdownIndicatorRefresh&&window.__pantauDropdownIndicatorRefresh();}});
     select.addEventListener('change',render);
     // shortcut: menu & listener dari select yang dihapus dari DOM tidak dibersihkan; cukup selama select jarang dibuat ulang, tambahkan cleanup jika halaman sering me-render ulang select.
     // select.value = ... dari kode tidak memicu event change; label tetap harus ikut berubah.

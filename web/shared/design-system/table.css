@@ -1,12 +1,24 @@
-/* Komponen tabel PANTAU (.pantau-table) dan ikon urut kolom. */
+/* Komponen tabel PANTAU dan ikon urut kolom.
+   Markup: <div class="pantau-table-scroll"><table class="pantau-table">...</table></div>; min-width tabel diatur pemakainya. */
+
+/* Wrapper scroll horizontal, bersudut persegi. */
+.pantau-table-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  border-radius: 0 !important;
+}
 
 .pantau-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  border-radius: 0 !important;
   border-spacing: 0 !important;
   font-size: 14px !important;
   line-height: 20px !important;
   color: #334155 !important;
   background: #fff !important;
-  /* Sudut membulat ditangani wrapper agar scroll horizontal tetap berfungsi. */
   overflow: visible !important;
 }
 

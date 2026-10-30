@@ -1,5 +1,5 @@
-<section class="admin-page hidden" id="page-upload">
-  <div class="admin-page-head">
+<section class="admin-page pantau-page hidden" id="page-upload">
+  <div class="admin-page-head pantau-page-head">
     <div>
       <span class="admin-page-kicker" data-jenis-label></span>
       <h2>Upload Excel</h2>
@@ -11,18 +11,18 @@
     </div>
   </div>
 
-  <div class="admin-card">
+  <div class="pantau-card">
     <div class="admin-card-head">
       <h3>Upload per Bulan</h3>
       <p>Pilih bulan lalu unggah file Excel bulan tersebut. Data <span data-jenis-label></span> bulan itu diganti dengan isi file.</p>
     </div>
     <input accept=".xlsx,.xlsm" class="hidden" id="uploadMonthFile" type="file" onchange="handleUploadFile(this.files[0], uploadPendingMonth)"/>
-    <div class="overflow-x-auto">
-      <table class="pantau-table w-full text-left border-collapse min-w-[640px]">
+    <div class="pantau-table-scroll">
+      <table class="pantau-table min-w-[640px]">
         <thead>
           <tr>
             <th>Bulan</th>
-            <th class="text-right">Jumlah BU</th>
+            <th class="text-right" id="uploadCountHeader">Jumlah BU</th>
             <th class="text-right">Total Nominal</th>
             <th class="text-right">Aksi</th>
           </tr>
@@ -32,20 +32,20 @@
     </div>
   </div>
 
-  <div class="admin-card">
+  <div class="pantau-card">
     <div class="admin-card-head">
       <h3>Upload Banyak Bulan Sekaligus</h3>
-      <p>File dengan satu sheet per bulan. Bulan dibaca dari nama sheet atau kolom Periode. Sheet kosong dilewati, jadi template satu tahun bisa diisi sebagian saja.</p>
+      <p id="uploadBulkHint"></p>
     </div>
     <label class="admin-dropzone" id="uploadDropzone" for="uploadFile">
       <input accept=".xlsx,.xlsm" class="hidden" id="uploadFile" type="file" onchange="handleUploadFile(this.files[0])"/>
       <i class="fa-solid fa-file-excel"></i>
       <strong id="uploadFileName">Pilih atau tarik file Excel ke sini</strong>
-      <span>Format kolom: NO, KODE BU, NAMA BU, Periode, Peserta, Nominal (.xlsx)</span>
+      <span id="uploadFormatHint"></span>
     </label>
   </div>
 
-  <div class="admin-card hidden" id="uploadReview">
+  <div class="pantau-card hidden" id="uploadReview">
     <div class="admin-upload-target" id="uploadTargetInfo"></div>
     <div class="admin-toolbar">
       <label class="admin-check">

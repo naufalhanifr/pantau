@@ -1,0 +1,14 @@
+/* Komponen card PANTAU: kotak putih ber-border tipis. Padding 20px, 16px di layar kecil. */
+
+.pantau-card {
+  padding: 20px;
+  border: 1px solid rgba(226, 232, 240, .8);
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
+}
+
+@media (max-width: 639px) {
+  .pantau-card {
+    padding: 16px;
+  }
+}

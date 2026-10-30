@@ -1,5 +1,5 @@
 // Riwayat upload dan penyimpanan workspace untuk jenis data menu aktif.
-const JENIS_LABEL = { tagihan: "Tagihan", pembayaran: "Pembayaran", rekap: "Tagihan + Pembayaran" };
+const JENIS_LABEL = { tagihan: "Tagihan", pembayaran: "Pembayaran", karyawan: "Karyawan", rekap: "Tagihan + Pembayaran" };
 
 async function loadHistory() {
     const body = document.getElementById("historyBody");

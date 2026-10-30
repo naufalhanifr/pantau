@@ -1,0 +1,43 @@
+/* Komponen searchbar PANTAU (acuan: search Data Badan Usaha). Lebar diatur oleh pemakainya.
+   Markup: <div class="pantau-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input></div> */
+
+.pantau-search {
+  position: relative;
+}
+
+.pantau-search > i {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.pantau-search > input {
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 40px;
+  padding: 8px 12px 8px 40px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #1e293b;
+  font-size: 14px;
+  line-height: 20px;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.pantau-search > input::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+.pantau-search > input:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16,185,129,.18);
+}

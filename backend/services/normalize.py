@@ -1,26 +1,30 @@
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Any
 
 from ..config import MONTHS
 
 
 def parse_amount(value: Any) -> int:
-    """Terima angka Excel maupun teks seperti 'Rp 1.234.567' atau '1,234,567'."""
+    """Terima angka Excel maupun teks seperti 'Rp 1.234.567', '1,234,567', '1.234,50' atau '1,234.50'."""
     if value is None or value == "":
         return 0
     if isinstance(value, bool):
         return int(value)
     if isinstance(value, (int, float)):
-        return int(round(value))
-    text = str(value).strip().replace("Rp", "").replace(" ", "")
-    if "." in text and "," not in text:
-        text = text.replace(".", "")
-    elif "," in text and "." not in text:
-        text = text.replace(",", "")
-    elif "." in text and "," in text:
-        text = text.replace(".", "").replace(",", ".")
+        number = value
+    else:
+        text = str(value).strip().replace("Rp", "").replace(" ", "")
+        if "." in text and "," in text:
+            # Pemisah yang muncul terakhir adalah desimal; yang lain pemisah ribuan.
+            decimal = "," if text.rfind(",") > text.rfind(".") else "."
+            text = text.replace("." if decimal == "," else ",", "").replace(decimal, ".")
+        else:
+            text = text.replace(".", "").replace(",", "")
+        number = text
     try:
-        return int(round(float(text)))
-    except ValueError:
+        # Setengah dibulatkan ke atas, sama dengan Math.round di web admin (round() Python membulatkan ke genap).
+        return int(Decimal(number).quantize(Decimal(1), ROUND_HALF_UP))
+    except (InvalidOperation, ValueError):   # teks bukan angka, NaN, Infinity
         return 0
 
 

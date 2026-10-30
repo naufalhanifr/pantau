@@ -1,6 +1,24 @@
 // Upload Excel per jenis (menu aktif): parse di server, tinjau & edit per sheet di spreadsheet, lalu simpan ke database.
 const UPLOAD_FIELDS = [["kode_bu", "KODE BU", true], ["nama_bu", "NAMA BU", false], ["peserta", "Peserta", false], ["nominal", "Nominal", true]];
-const NUMERIC_FIELDS = ["peserta", "nominal"];
+const NUMERIC_FIELDS = ["peserta", "nominal", "bulan_menunggak", "nominal_tagihan", "jumlah_bayar"];
+// Per jenis: kolom jumlah di ringkasan (/summary), kunci baris, dan teks bantuan. Karyawan berformat tetap, jadi tanpa pemetaan kolom.
+const UPLOAD_JENIS = {
+    tagihan: { prefix: "tagihan", key: "kode_bu", keyLabel: "KODE BU", count: "Jumlah BU" },
+    pembayaran: { prefix: "bayar", key: "kode_bu", keyLabel: "KODE BU", count: "Jumlah BU" },
+    karyawan: {
+        prefix: "karyawan", key: "noka_keluarga", keyLabel: "Noka Peserta/Keluarga", count: "Jumlah Peserta", fixed: true,
+        bulk: "File dengan satu sheet per bulan. Bulan dibaca dari kolom Bulan Tagih (atau nama sheet); setiap bulan yang ada di file menjadi satu tab.",
+        format: "Per sheet: Kode BU, Nama BU, Noka Peserta, ..., Bulan Tagih, lalu Tanggal Bayar dan Jumlah Bayar bulan itu (.xlsx)",
+    },
+};
+const UPLOAD_DEFAULT_HINTS = {
+    bulk: "File dengan satu sheet per bulan. Bulan dibaca dari nama sheet atau kolom Periode. Sheet kosong dilewati, jadi template satu tahun bisa diisi sebagian saja.",
+    format: "Format kolom: NO, KODE BU, NAMA BU, Periode, Peserta, Nominal (.xlsx)",
+};
+
+function uploadFields() {
+    return UPLOAD_JENIS[uploadJenis]?.fixed ? [] : UPLOAD_FIELDS;
+}
 // Kolom nominal di file rekap (Total Tagihan / Total Bayar) per jenis.
 const REKAP_NOMINAL_FIELD = { tagihan: "tagihan", pembayaran: "bayar" };
 
@@ -15,6 +33,10 @@ let uploadPendingMonth = null;
 
 function initUpload() {
     if (uploadJenis && uploadJenis !== activeAdminJenis) resetUpload();
+    const config = UPLOAD_JENIS[activeAdminJenis];
+    document.getElementById("uploadCountHeader").textContent = config.count;
+    document.getElementById("uploadBulkHint").textContent = config.bulk || UPLOAD_DEFAULT_HINTS.bulk;
+    document.getElementById("uploadFormatHint").textContent = config.format || UPLOAD_DEFAULT_HINTS.format;
     loadUploadMonths();
     redrawUploadGrid();
 }
@@ -30,7 +52,7 @@ function resetUpload() {
 async function loadUploadMonths() {
     const body = document.getElementById("uploadMonthBody");
     const jenis = activeAdminJenis;
-    const prefix = jenis === "tagihan" ? "tagihan" : "bayar";
+    const prefix = UPLOAD_JENIS[jenis].prefix;
     try {
         const summary = await adminApi("/api/admin/summary");
         if (jenis !== activeAdminJenis) return;
@@ -102,7 +124,8 @@ async function handleUploadFile(file, month = null) {
     try {
         const form = new FormData();
         form.append("file", file);
-        const result = await adminApi("/api/admin/upload", { method: "POST", form });
+        const query = new URLSearchParams({ jenis: activeAdminJenis, bulan: month || "" });
+        const result = await adminApi(`/api/admin/upload?${query}`, { method: "POST", form });
         const rekapField = REKAP_NOMINAL_FIELD[activeAdminJenis];
         uploadFileName = result.filename;
         uploadJenis = activeAdminJenis;
@@ -171,7 +194,7 @@ function renderUploadMapping() {
     document.getElementById("uploadMapping").innerHTML = `
       <label class="admin-field ${sheet.bulan ? "" : "is-missing"}"><span>Bulan sheet ini</span>
         <select class="admin-select" ${uploadMonth ? "disabled" : ""} onchange="setUploadMonth(this.value)"><option value="">Pilih bulan</option>${monthOptions}</select>
-      </label>` + UPLOAD_FIELDS.map(([field, label, required]) => {
+      </label>` + uploadFields().map(([field, label, required]) => {
         const missing = required && sheet.mapping[field] === undefined;
         return `<label class="admin-field ${missing ? "is-missing" : ""}"><span>Kolom ${label}${required ? " *" : ""}</span>
           <select class="admin-select" onchange="setUploadMapping('${field}', this.value)">
@@ -179,7 +202,7 @@ function renderUploadMapping() {
           </select></label>`;
     }).join("");
     document.querySelectorAll("#uploadMapping select[onchange^=setUploadMapping]").forEach((select, i) => {
-        select.value = sheet.mapping[UPLOAD_FIELDS[i][0]] ?? "";
+        select.value = sheet.mapping[uploadFields()[i][0]] ?? "";
     });
 }
 
@@ -228,12 +251,13 @@ function buildImportRows(sheet, jenis) {
     const rows = [];
     let skipped = 0;
     for (const row of sheet.data) {
-        const kode = String(get(row, "kode_bu") ?? "").trim();
+        const kode = String(get(row, UPLOAD_JENIS[jenis].key) ?? "").trim();
         if (!kode) { skipped++; continue; }
-        const item = { kode_bu: kode, nama_bu: get(row, "nama_bu") ?? "" };
-        if (jenis === "tagihan") Object.assign(item, { peserta_tagihan: get(row, "peserta"), tagihan: get(row, "nominal") });
-        if (jenis === "pembayaran") Object.assign(item, { peserta_bayar: get(row, "peserta"), bayar: get(row, "nominal") });
-        rows.push(item);
+        if (jenis === "karyawan") {
+            rows.push(Object.fromEntries(Object.keys(m).map(field => [field, get(row, field)])));
+            continue;
+        }
+        rows.push({ kode_bu: kode, nama_bu: get(row, "nama_bu") ?? "", peserta: get(row, "peserta"), nominal: get(row, "nominal") });
     }
     return { rows, skipped };
 }
@@ -246,7 +270,7 @@ async function saveUpload() {
     if (!chosen.length) return showToast("Pilih minimal satu sheet untuk diimpor.", "error");
     const problems = chosen.flatMap(sheet => [
         !sheet.bulan && `Sheet ${sheet.name}: bulan belum dipilih.`,
-        ...UPLOAD_FIELDS.filter(([field, , required]) => required && sheet.mapping[field] === undefined)
+        ...uploadFields().filter(([field, , required]) => required && sheet.mapping[field] === undefined)
             .map(([, label]) => `Sheet ${sheet.name}: kolom ${label} belum dipetakan.`),
     ]).filter(Boolean);
     const months = chosen.map(sheet => sheet.bulan);
@@ -274,7 +298,7 @@ async function saveUpload() {
                 method: "POST",
                 body: { jenis, bulan: sheet.bulan, replace, source: `${uploadFileName} / ${sheet.name}`, rows },
             });
-            done.push(`${sheet.bulan}: ${formatNumber(result.written)} baris${skipped ? ` (${skipped} baris tanpa KODE BU dilewati)` : ""}`);
+            done.push(`${sheet.bulan}: ${formatNumber(result.written)} baris${skipped ? ` (${skipped} baris tanpa ${UPLOAD_JENIS[jenis].keyLabel} dilewati)` : ""}`);
         }
         showToast(`${label} tersimpan ke database.\n${done.join("\n")}`, "success", 7000);
     } catch (error) {

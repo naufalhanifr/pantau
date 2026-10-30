@@ -1,0 +1,173 @@
+/* Popup detail PANTAU (Detail Badan Usaha, Detail Karyawan): header berjudul + tombol tutup,
+   isi yang bisa di-scroll (ringkasan, tabel), dan footer tombol Tutup. Markup & cara buka: detail-modal.js. */
+
+.pantau-detail-modal {
+  width: min(896px, calc(100vw - 32px));
+  max-width: none;
+  max-height: 90vh;
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #1e293b;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, .25);
+}
+
+.pantau-detail-modal[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.pantau-detail-modal::backdrop {
+  background: rgba(15, 23, 42, .45);
+}
+
+/* Kunci scroll halaman selama popup terbuka. */
+body.pantau-modal-open {
+  overflow: hidden;
+}
+
+.pantau-detail-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  border-radius: 0 !important;
+}
+
+.pantau-detail-modal-heading {
+  min-width: 0;
+}
+
+.pantau-detail-modal-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 700;
+}
+
+.pantau-detail-modal-subtitle {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.pantau-detail-modal-body {
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* Seksi tabel di dalam isi popup: judul kiri, keterangan periode kanan. */
+.pantau-detail-modal-section {
+  margin-top: 24px;
+}
+
+.pantau-detail-modal-section:first-child {
+  margin-top: 0;
+}
+
+.pantau-detail-modal-section-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.pantau-detail-modal-section-head h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+}
+
+.pantau-detail-modal-section-head p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.pantau-detail-modal .pantau-table thead th {
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.pantau-detail-modal .pantau-table tbody tr {
+  cursor: default;
+  transition: background-color 160ms ease-in-out !important;
+}
+
+.pantau-detail-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 20px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 0 0 8px 8px !important;
+}
+
+.pantau-detail-modal-close,
+.pantau-detail-modal-btn {
+  flex-shrink: 0;
+  font-family: inherit;
+  cursor: pointer;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(.4, 0, .2, 1);
+  transition-duration: .15s;
+}
+
+.pantau-detail-modal-close {
+  padding: 8px;
+  border: 0;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.pantau-detail-modal-close i {
+  font-size: 18px;
+  line-height: 28px;
+}
+
+.pantau-detail-modal-btn {
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #334155;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+.pantau-detail-modal-close:focus-visible,
+.pantau-detail-modal-btn:focus-visible {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+
+@media (min-width: 640px) {
+  .pantau-detail-modal-header {
+    padding: 16px 24px;
+  }
+  .pantau-detail-modal-title {
+    font-size: 24px;
+    line-height: 32px;
+  }
+  .pantau-detail-modal-body {
+    padding: 20px 24px;
+  }
+  .pantau-detail-modal-section-head {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+  .pantau-detail-modal-footer {
+    padding: 12px 24px;
+  }
+}

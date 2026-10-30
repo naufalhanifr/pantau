@@ -1,6 +1,38 @@
 // Workspace: edit data satu jenis (menu aktif) satu bulan seperti spreadsheet, lalu simpan selisihnya ke database.
-const WS_FIELDS = ["kode_bu", "nama_bu", "peserta", "nominal"];
-const WS_NUMBER_FIELDS = ["peserta", "nominal"];
+// Per jenis: kolom grid, kolom angka, dan kunci baris (dipakai untuk hapus & cek duplikat).
+const WS_BU = {
+    key: "kode_bu", keyLabel: "KODE BU", numbers: ["peserta", "nominal"],
+    columns: [
+        { title: "Kode BU", field: "kode_bu", width: 120, frozen: true },
+        { title: "Nama Badan Usaha", field: "nama_bu", widthGrow: 3, minWidth: 220 },
+        numberColumn("Peserta", "peserta", { width: 130 }),
+        numberColumn("Nominal", "nominal", { minWidth: 160 }),
+    ],
+};
+const WS_KARYAWAN = {
+    key: "noka_keluarga", keyLabel: "Noka Peserta/Keluarga", numbers: ["bulan_menunggak", "nominal_tagihan", "jumlah_bayar"],
+    columns: [
+        { title: "Nama Peserta", field: "nama_peserta", minWidth: 200, frozen: true },
+        { title: "Noka Peserta", field: "noka_peserta", width: 150 },
+        { title: "Nama Peserta/Keluarga", field: "nama_keluarga", minWidth: 200 },
+        { title: "Noka Peserta/Keluarga", field: "noka_keluarga", width: 170 },
+        { title: "Pisapst", field: "status", width: 110 },
+        { title: "Kode BU", field: "kode_bu", width: 110 },
+        { title: "Nama BU", field: "nama_bu", minWidth: 220 },
+        numberColumn("Bulan Menunggak", "bulan_menunggak", { width: 140 }),
+        numberColumn("Jumlah Bayar (0 = belum bayar)", "jumlah_bayar", { width: 200 }),
+        { title: "Tanggal Bayar (dd/mm/yyyy)", field: "tanggal_bayar", width: 170 },
+        numberColumn("Sisa Tagihan Aktif", "nominal_tagihan", { width: 160 }),
+    ],
+};
+
+function wsSchema(jenis = wsJenis) {
+    return jenis === "karyawan" ? WS_KARYAWAN : WS_BU;
+}
+
+function wsFields() {
+    return wsSchema().columns.map(column => column.field);
+}
 
 let wsTable = null;
 let wsJenis = "";
@@ -11,13 +43,15 @@ let wsDeleted = new Set();    // KODE BU asli yang dihapus
 let wsNextId = 0;
 let wsStatusTimer = null;
 
-function initWorkspace() {
+async function initWorkspace() {
     const select = document.getElementById("workspaceMonth");
     if (!select.options.length) select.innerHTML = MONTHS.map(month => `<option>${month}</option>`).join("");
-    const month = wsRequestedMonth || wsMonth || select.value;
+    // Bulan awal: dari tombol Workspace di Upload, bulan terakhir dibuka di menu yang sama, atau bulan terakhir yang sudah diupload.
+    let month = wsRequestedMonth || (wsJenis === activeAdminJenis ? wsMonth : "");
     wsRequestedMonth = "";
+    if (!month) month = (await latestUploadedMonth(activeAdminJenis)) || select.value;
     if (!wsTable) {
-        wsTable = createSpreadsheet("#workspaceGrid", workspaceColumns(), [], {
+        wsTable = createSpreadsheet("#workspaceGrid", wsSchema(activeAdminJenis).columns, [], {
             index: "_id",
             rowFormatter: formatWorkspaceRow,
         });
@@ -32,13 +66,13 @@ function initWorkspace() {
     }
 }
 
-function workspaceColumns() {
-    return [
-        { title: "Kode BU", field: "kode_bu", width: 120, frozen: true },
-        { title: "Nama Badan Usaha", field: "nama_bu", widthGrow: 3, minWidth: 220 },
-        numberColumn("Peserta", "peserta", { width: 130 }),
-        numberColumn("Nominal", "nominal", { minWidth: 160 }),
-    ];
+async function latestUploadedMonth(jenis) {
+    try {
+        const { per_bulan } = await adminApi("/api/admin/summary");
+        return per_bulan.filter(m => m[`${UPLOAD_JENIS[jenis].prefix}_rows`]).at(-1)?.bulan || "";
+    } catch {
+        return "";
+    }
 }
 
 function formatWorkspaceRow(row) {
@@ -47,15 +81,17 @@ function formatWorkspaceRow(row) {
     const element = row.getElement();
     element.classList.toggle("ws-row-new", !original);
     element.classList.toggle("ws-row-changed", Boolean(original) && isWorkspaceRowChanged(original, data));
-    row.getCells().forEach(cell => cell.getElement().classList.toggle("ws-cell-invalid", cell.getField() === "kode_bu" && !String(data.kode_bu || "").trim()));
+    const key = wsSchema().key;
+    row.getCells().forEach(cell => cell.getElement().classList.toggle("ws-cell-invalid", cell.getField() === key && !String(data[key] || "").trim()));
 }
 
 function isWorkspaceRowChanged(original, data) {
-    return WS_FIELDS.some(field => String(original[field] ?? "") !== String(data[field] ?? ""));
+    return wsFields().some(field => String(original[field] ?? "") !== String(data[field] ?? ""));
 }
 
 async function loadWorkspace(month) {
     if (!month || !wsTable) return;
+    if (wsJenis !== activeAdminJenis) wsTable.setColumns(wsSchema(activeAdminJenis).columns);
     wsJenis = activeAdminJenis;
     wsMonth = month;
     document.getElementById("workspaceMonth").value = month;
@@ -67,7 +103,7 @@ async function loadWorkspace(month) {
         const data = rows.map(row => {
             const item = { _id: wsNextId++ };
             // Samakan dengan mutator kolom angka agar baris yang tidak disentuh tidak terhitung berubah.
-            WS_FIELDS.forEach(field => { item[field] = WS_NUMBER_FIELDS.includes(field) ? parseAmount(row[field]) : row[field] ?? ""; });
+            wsFields().forEach(field => { item[field] = wsSchema().numbers.includes(field) ? parseAmount(row[field]) : row[field] ?? ""; });
             wsOriginal.set(item._id, { ...item });
             return item;
         });
@@ -94,13 +130,15 @@ function openWorkspaceMonth(month) {
 function filterWorkspace(query) {
     const q = query.trim().toLocaleLowerCase("id-ID");
     if (!q) return wsTable.clearFilter();
-    wsTable.setFilter(data => `${data.kode_bu} ${data.nama_bu}`.toLocaleLowerCase("id-ID").includes(q));
+    const fields = wsFields();
+    wsTable.setFilter(data => fields.map(field => data[field]).join(" ").toLocaleLowerCase("id-ID").includes(q));
 }
 
 function addWorkspaceRow() {
     const id = wsNextId++;
-    wsTable.addRow({ _id: id, kode_bu: "", nama_bu: "", peserta: 0, nominal: 0 }, true)
-        .then(row => { row.scrollTo(); row.getCell("kode_bu").edit(); });
+    const { key, numbers } = wsSchema();
+    wsTable.addRow({ _id: id, ...Object.fromEntries(wsFields().map(field => [field, numbers.includes(field) ? 0 : ""])) }, true)
+        .then(row => { row.scrollTo(); row.getCell(key).edit(); });
 }
 
 async function deleteWorkspaceRows() {
@@ -113,7 +151,7 @@ async function deleteWorkspaceRows() {
     }))) return;
     rows.forEach(row => {
         const original = wsOriginal.get(row.getData()._id);
-        if (original) wsDeleted.add(original.kode_bu);
+        if (original) wsDeleted.add(original[wsSchema().key]);
         row.delete();
     });
     updateWorkspaceStatus();
@@ -122,11 +160,13 @@ async function deleteWorkspaceRows() {
 function workspaceChanges() {
     const upserts = [];
     const deletes = new Set(wsDeleted);
+    const fields = wsFields();
+    const key = wsSchema().key;
     for (const data of wsTable.getData()) {
         const original = wsOriginal.get(data._id);
         if (original && !isWorkspaceRowChanged(original, data)) continue;
-        upserts.push(Object.fromEntries(WS_FIELDS.map(field => [field, data[field]])));
-        if (original && original.kode_bu !== data.kode_bu) deletes.add(original.kode_bu);
+        upserts.push(Object.fromEntries(fields.map(field => [field, data[field]])));
+        if (original && original[key] !== data[key]) deletes.add(original[key]);
     }
     return { upserts, deletes: [...deletes] };
 }
@@ -163,11 +203,17 @@ async function resetWorkspace() {
 
 async function saveWorkspace() {
     const { upserts, deletes } = workspaceChanges();
-    const empty = upserts.filter(row => !String(row.kode_bu || "").trim()).length;
-    if (empty) return showToast(`${empty} baris belum memiliki KODE BU.`, "error");
-    const codes = wsTable.getData().map(row => String(row.kode_bu || "").trim());
-    const duplicate = codes.find((code, i) => codes.indexOf(code) !== i);
-    if (duplicate) return showToast(`KODE BU ${duplicate} muncul lebih dari sekali.`, "error");
+    const { key, keyLabel } = wsSchema();
+    const empty = upserts.filter(row => !String(row[key] || "").trim()).length;
+    if (empty) return showToast(`${empty} baris belum memiliki ${keyLabel}.`, "error");
+    // Set, bukan indexOf: workspace karyawan berisi ±20 ribu baris per bulan.
+    const seen = new Set();
+    const duplicate = wsTable.getData().map(row => String(row[key] || "").trim()).find(code => {
+        if (seen.has(code)) return true;
+        seen.add(code);
+        return false;
+    });
+    if (duplicate) return showToast(`${keyLabel} ${duplicate} muncul lebih dari sekali.`, "error");
     if (!(await pantauConfirm({
         title: `Simpan ${ADMIN_JENIS[wsJenis]} ${wsMonth}?`,
         message: `${upserts.length} baris diubah/ditambah dan ${deletes.length} baris dihapus akan disimpan ke database.`,

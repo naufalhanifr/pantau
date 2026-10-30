@@ -38,6 +38,14 @@ select.pantau-select:focus {
   box-shadow: 0 0 0 2px rgba(16,185,129,.18);
 }
 
+/* Label opsi tetap satu baris; teks yang terlalu panjang dipotong dengan elipsis. */
+.pantau-native-select-trigger .pantau-native-select-label {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .pantau-native-select-trigger .pantau-native-select-chevron {
   font-size: 11px;
   color: #64748b;
@@ -62,7 +70,7 @@ select.pantau-select:focus {
 
 /* Kedua dropdown jumlah data memakai ukuran dan tampilan yang sama persis. */
 #pageSizeSelect,
-#employeesPage #employeePageSize {
+#employeePageSize {
   width: 76px !important;
   min-width: 76px !important;
   max-width: 76px !important;
@@ -73,7 +81,7 @@ select.pantau-select:focus {
 }
 
 #pageSizeSelect:focus,
-#employeesPage #employeePageSize:focus {
+#employeePageSize:focus {
   outline: none !important;
   border-color: #10b981 !important;
   box-shadow: 0 0 0 2px rgba(16, 185, 129, .25) !important;

@@ -1,0 +1,32 @@
+/* Layout PANTAU: padding luar area konten dan jarak antar blok di dalam halaman. */
+
+/* Pembungkus area konten (di samping sidebar). */
+.pantau-content {
+  padding: 20px 12px;
+}
+
+@media (min-width: 640px) {
+  .pantau-content {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .pantau-content {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+/* Satu halaman/menu: blok konten langsungnya (notice, card) berjarak 20px. Jangan beri margin atas/bawah pada blok itu. */
+.pantau-page:not(.hidden) {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Blok judul + deskripsi halaman: 32px ke blok konten pertama (gap 20px + 12px). */
+.pantau-page > .pantau-page-head {
+  margin-bottom: 12px;
+}

@@ -63,8 +63,13 @@ def month_summary(conn: sqlite3.Connection) -> list[dict[str, Any]]:
         bayar = conn.execute(
             "SELECT COUNT(*) AS n, COALESCE(SUM(nominal), 0) AS total FROM pembayaran WHERE bulan = ?", (bulan,)
         ).fetchone()
+        karyawan = conn.execute(
+            "SELECT COUNT(*) AS n, COALESCE(SUM(nominal_tagihan), 0) AS total FROM karyawan WHERE bulan = ?", (bulan,)
+        ).fetchone()
         summary.append({
             "bulan": bulan,
+            "karyawan_rows": karyawan["n"],
+            "karyawan_total": karyawan["total"],
             "tagihan_rows": tagihan["n"],
             "tagihan_total": tagihan["total"],
             "bayar_rows": bayar["n"],
@@ -106,10 +111,6 @@ def _clean_rows(rows: Iterable[dict[str, Any]]) -> tuple[list[dict[str, Any]], l
         cleaned.append({
             "kode_bu": kode,
             "nama_bu": normalize_name(row.get("nama_bu")),
-            "peserta_tagihan": parse_amount(row.get("peserta_tagihan")),
-            "tagihan": parse_amount(row.get("tagihan")),
-            "peserta_bayar": parse_amount(row.get("peserta_bayar")),
-            "bayar": parse_amount(row.get("bayar")),
             "peserta": parse_amount(row.get("peserta")),
             "nominal": parse_amount(row.get("nominal")),
         })
@@ -119,23 +120,16 @@ def _clean_rows(rows: Iterable[dict[str, Any]]) -> tuple[list[dict[str, Any]], l
 def import_rows(
     conn: sqlite3.Connection, jenis: str, bulan: str, rows: list[dict[str, Any]], replace: bool, source: str
 ) -> dict[str, Any]:
-    """Simpan hasil upload. jenis: tagihan | pembayaran | rekap (tagihan + pembayaran sekaligus)."""
+    """Simpan hasil upload satu jenis (tagihan | pembayaran) pada satu bulan."""
+    table = JENIS_TABLE[jenis]
     cleaned, errors = _clean_rows(rows)
     if errors:
         return {"ok": False, "errors": errors[:50]}
 
-    tables = ["tagihan", "pembayaran"] if jenis == "rekap" else [JENIS_TABLE[jenis]]
-    deleted = 0
-    if replace:
-        for table in tables:
-            deleted += conn.execute(f"DELETE FROM {table} WHERE bulan = ?", (bulan,)).rowcount
-
+    deleted = conn.execute(f"DELETE FROM {table} WHERE bulan = ?", (bulan,)).rowcount if replace else 0
     for row in cleaned:
         _upsert_company(conn, row["kode_bu"], row["nama_bu"])
-        if "tagihan" in tables:
-            _upsert_amount(conn, "tagihan", row["kode_bu"], bulan, row["peserta_tagihan"], row["tagihan"])
-        if "pembayaran" in tables:
-            _upsert_amount(conn, "pembayaran", row["kode_bu"], bulan, row["peserta_bayar"], row["bayar"])
+        _upsert_amount(conn, table, row["kode_bu"], bulan, row["peserta"], row["nominal"])
 
     conn.execute(
         "INSERT INTO import_log (action, source, jenis, bulan, rows_written, rows_deleted) VALUES (?, ?, ?, ?, ?, ?)",
@@ -171,5 +165,6 @@ def save_workspace(
 
 def import_log(conn: sqlite3.Connection, jenis: str, limit: int = 100) -> list[dict[str, Any]]:
     """Riwayat satu jenis, termasuk upload rekap yang mengubah tagihan dan pembayaran sekaligus."""
-    sql = "SELECT * FROM import_log WHERE jenis IN (?, 'rekap') ORDER BY id DESC LIMIT ?"
-    return [dict(row) for row in conn.execute(sql, (jenis, limit))]
+    rekap = "rekap" if jenis in JENIS_TABLE else jenis
+    sql = "SELECT * FROM import_log WHERE jenis IN (?, ?) ORDER BY id DESC LIMIT ?"
+    return [dict(row) for row in conn.execute(sql, (jenis, rekap, limit))]

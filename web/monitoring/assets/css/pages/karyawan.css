@@ -1,288 +1,49 @@
-/* Menu Daftar Karyawan. */
+/* Menu Daftar Karyawan. Kartu login, tabel, select, search, dropdown, dan pagination memakai design system; sisanya kelas Tailwind di karyawan.html. */
 
-#employeesPage,
-#employeesPage > *,
-#employeesPage .bg-white.rounded-2xl {
-  min-width: 0 !important;
-  max-width: 100% !important;
+/* Tabel: lebar mengikuti isi, scroll horizontal di dalam wrapper persegi. */
+#employeeTableScroll .pantau-table {
+  width: max-content;
+  min-width: 100%;
 }
 
-#employeesPage {
-  width: 100% !important;
-  overflow-x: hidden !important;
+#employeeTableScroll th,
+#employeeTableScroll td {
+  white-space: nowrap;
 }
 
-#employeesPage #employeeTableScroll {
-  width: 100% !important;
-  max-width: 100% !important;
-  overflow-y: hidden !important;
-  overscroll-behavior-x: contain;
+/* Kolom nama: Badan Usaha, Peserta, Peserta/Keluarga. */
+#employeeTableScroll th:nth-child(2),
+#employeeTableScroll th:nth-child(3),
+#employeeTableScroll th:nth-child(4) {
+  min-width: 180px;
 }
 
-#employeesPage #employeeTableScroll > table {
-  width: max-content !important;
-  min-width: 100% !important;
-}
-
-#employeeTableScroll {
-  border-radius: 0 !important;
-}
-
-/* Respect login state even when the login panel has an inline display style. */
-#employeeLoginPanel.hidden,
-#employeesProtectedContent.hidden {
-  display: none !important;
-}
-
-/* Compact access screen inspired by the supplied reference, using PANTAU's green/teal palette. */
-#employeesPage:not(.hidden):has(#employeeLoginPanel:not(.hidden)) {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  gap: 0 !important;
-}
-
-#employeeFilters .employee-filter-search input {
-  display: block !important;
-  border-radius: 8px !important;
-}
-
-#employeeFilters .employee-filter-search input::placeholder {
-  color: #94a3b8 !important;
-  opacity: 1 !important;
-}
-
-/* Seluruh teks pada kontrol filter Data Karyawan berwarna hitam. */
-#employeeFilters .employee-filter-field,
-#employeeFilters .employee-filter-field input,
-#employeeFilters .employee-filter-field input::placeholder,
-#employeeFilters .employee-custom-select-trigger,
-#employeeFilters .employee-custom-select-trigger span,
-#employeeFilters .employee-business-toggle,
-#employeeFilters .employee-custom-select-trigger i {
-  color: #000 !important;
-}
-
-#employeesPage #employeesProtectedContent > .bg-white.rounded-2xl.shadow-sm.border.border-slate-200\/80 {
-  width: 100% !important;
-  padding: 20px !important;
-}
-
-#employeesPage #employeesProtectedContent > .bg-white.rounded-2xl.shadow-sm.border.border-slate-200\/80 > div.p-5.bg-white.border-b {
-  padding: 0 !important;
-  margin: 0 0 16px !important;
-  border: 0 !important;
-}
-
-#employeeTableScroll {
-  position: relative !important;
-  border: 0 !important;
-}
-
-#employeeTableScroll > table.pantau-table th,
-#employeeTableScroll > table.pantau-table td {
-  white-space: nowrap !important;
-}
-
-#employeeTableScroll > table.pantau-table th:nth-child(3),
-#employeeTableScroll > table.pantau-table td:nth-child(3),
-#employeeTableScroll > table.pantau-table th:nth-child(5),
-#employeeTableScroll > table.pantau-table td:nth-child(5),
-#employeeTableScroll > table.pantau-table th:nth-child(7),
-#employeeTableScroll > table.pantau-table td:nth-child(7) {
-  min-width: 180px !important;
-}
-
-#employeeTableScroll > table.pantau-table th:nth-child(4),
-#employeeTableScroll > table.pantau-table td:nth-child(4),
-#employeeTableScroll > table.pantau-table th:nth-child(6),
-#employeeTableScroll > table.pantau-table td:nth-child(6) {
-  min-width: 170px !important;
-}
-
-#employeeTableScroll > table.pantau-table thead th {
-  font-size: 11px !important;
-  line-height: 16px !important;
-}
-
-#employeeTableScroll > table.pantau-table tbody tr:hover {
-  background: #f8fafc !important;
-}
-
-#employeesPage #employeesProtectedContent > .bg-white.rounded-2xl.shadow-sm.border.border-slate-200\/80 > div.p-5.bg-white.border-t {
-  padding: 0 !important;
-  margin: 16px 0 0 !important;
-  border: 0 !important;
-}
-
-#employeePageSize {
-  width: 76px !important;
-}
-
-#employeePaginationControls {
-  flex-wrap: wrap !important;
-  justify-content: flex-end !important;
-}
-
-@media (max-width: 640px) {
-  #employeeTableScroll > table.pantau-table th,
-  #employeeTableScroll > table.pantau-table td {
-    padding: 10px 12px !important;
-  }
-  #employeesPage #employeesProtectedContent > .bg-white.rounded-2xl.shadow-sm.border.border-slate-200\/80 > div.p-5.bg-white.border-t {
-    flex-wrap: wrap !important;
-  }
-  #employeePaginationInfo {
-    order: 3;
-    width: 100%;
-  }
-}
-
-#employeeFilters .employee-filter-search:focus-within {
-  background: #fff !important;
-  border-color: #10b981 !important;
-  box-shadow: 0 0 0 2px rgba(16,185,129,.12) !important;
-}
-
-#employeeFilters .employee-filter-search input::placeholder {
-  color: #94a3b8 !important;
-}
-
-#employeeFilters .employee-filter-search input::placeholder {
-  color: #94a3b8 !important;
-  opacity: 1 !important;
-}
-
-/* Filter text should be black; dropdown option lists retain their existing PANTAU design. */
-#employeeFilters .employee-filter-field input,
-#employeeFilters .employee-filter-field input::placeholder,
-#employeeFilters .employee-custom-select-trigger,
-#employeeFilters .employee-custom-select-trigger span {
-  color: #000 !important;
-}
-
-/* Samakan searchbar Data Karyawan dengan searchbar Data Badan Usaha. */
-#employeeFilters .employee-filter-search {
-  min-height: 0 !important;
-}
-
-#employeeFilters .employee-filter-search > input#employeeSearchInput {
-  height: auto !important;
-  min-height: 0 !important;
-  transition: background-color .15s,border-color .15s,box-shadow .15s !important;
-}
-
-#employeeFilters .employee-filter-search > input#employeeSearchInput::placeholder {
-  color: #94a3b8 !important;
-  opacity: 1 !important;
-}
-
-@media(min-width:640px) {
-  #employeeFilters .employee-filter-search {
-    width: 18rem !important;
-    max-width: 18rem !important;
-  }
-}
-
-/* Daftar Karyawan: samakan spacing dengan area Data Badan Usaha, pertahankan scroll di dalam tabel. */
-#employeesPage {
-  gap: 12px !important;
-}
-
-#employeesPage #employeesProtectedContent > .bg-white.rounded-2xl.shadow-sm.border.border-slate-200\/80 > div.p-5.bg-white.border-t {
-  gap: 12px !important;
-  align-items: center !important;
-}
-
-@media (max-width: 640px) {
-  #employeesPage #employeesProtectedContent > .bg-white.rounded-2xl.shadow-sm.border.border-slate-200\/80 {
-    padding: 16px !important;
-  }
-}
-
-/* Override the earlier global clip-path that rounded the table despite zero border-radius. */
-#employeesPage #employeeTableScroll,
-#employeesPage #employeeTableScroll > table.pantau-table,
-#employeesPage #employeeTableScroll > table.pantau-table:where(*),
-#employeesPage #employeeTableScroll > table.pantau-table thead,
-#employeesPage #employeeTableScroll > table.pantau-table thead tr,
-#employeesPage #employeeTableScroll > table.pantau-table thead th,
-#employeesPage #employeeTableScroll > table.pantau-table thead th:first-child,
-#employeesPage #employeeTableScroll > table.pantau-table thead th:last-child {
-  -webkit-clip-path: none !important;
-}
-
-#employeesPage #employeeTableScroll > table.pantau-table thead th::before,
-#employeesPage #employeeTableScroll > table.pantau-table thead th::after {
-  border-radius: 0 !important;
-}
-
-/* Daftar Karyawan: header mengikuti design system tabel PANTAU; isi tabel tetap netral. */
-#employeesPage #employeeTableScroll table.pantau-table thead tr {
+#employeeTableScroll thead tr {
   border-bottom: 1px solid #e2e8f0 !important;
 }
 
-#employeesPage #employeeTableScroll table.pantau-table thead th,
-#employeesPage #employeeTableScroll table.pantau-table thead th * {
-  background: transparent !important;
-}
-
-#employeesPage #employeeTableScroll table.pantau-table tbody td,
-#employeesPage #employeeTableScroll table.pantau-table tbody td * {
+/* Isi tabel netral: batalkan warna kolom nominal dari table.css. */
+#employeeTableBody td,
+#employeeDetailHistory td {
   color: #334155 !important;
 }
 
-/* Dashboard dan Daftar Karyawan: divider tipis hanya di akhir daftar. */
-#dashboardPage table.pantau-table tbody tr,
-#employeesPage table.pantau-table tbody tr {
-  border-bottom: 0 !important;
+/* Satu garis penutup di bawah baris terakhir halaman aktif. */
+#employeeTableBody > tr:last-child > td {
+  border-bottom: 1px solid #e2e8f0;
 }
 
-#dashboardPage table.pantau-table tbody tr > td,
-#employeesPage table.pantau-table tbody tr > td {
-  border-bottom: 0 !important;
+@media (max-width: 640px) {
+  #employeeTableScroll th,
+  #employeeTableScroll td {
+    padding: 10px 12px !important;
+  }
 }
 
-#dashboardPage table.pantau-table tbody tr:last-child > td,
-#employeesPage table.pantau-table tbody tr:last-child > td {
-  border-bottom: 1px solid #e2e8f0 !important;
-}
-
-/* Samakan ukuran dan tampilan employeePageSize dengan pageSizeSelect di Dashboard. */
-#employeesPage .employee-page-size-wrap {
-  position: relative !important;
-  display: inline-flex !important;
-  flex: 0 0 76px !important;
-  width: 76px !important;
-  min-width: 76px !important;
-}
-
-#employeesPage #employeePageSize {
-  height: 40px !important;
-  min-height: 40px !important;
-  padding: 8px 32px 8px 12px !important;
-  border: 1px solid #e2e8f0 !important;
-  background-repeat: no-repeat !important;
-  background-size: 16px 16px !important;
-  font-size: 14px !important;
-  line-height: 20px !important;
-  -webkit-appearance: none !important;
-}
-
-#employeesPage #employeePageSize:focus {
-  outline: none !important;
-  border-color: #10b981 !important;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, .25) !important;
-}
-
-#employeesPage #employeesProtectedContent > .bg-white.rounded-2xl.shadow-sm.border.border-slate-200\/80 > div.p-5.bg-white.border-b {
-  justify-content: space-between !important;
-  gap: 16px !important;
-}
-
-#employeeFilters.employee-filters {
+/* Filter: badan usaha, status, search. */
+#employeeFilters {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
@@ -290,274 +51,138 @@
   max-width: 100%;
 }
 
+#employeeStatusFilter {
+  width: 170px;
+}
+
+#employeePaidFilter {
+  width: 180px;
+}
+
+#employeeFilters .pantau-native-select-wrap {
+  flex: none;
+}
+
 #employeeFilters .employee-filter-search {
-  align-items: center;
-  gap: 8px;
+  flex: 0 0 18rem;
+  width: 18rem;
 }
 
-#employeeFilters .employee-filter-search i {
-  flex: 0 0 auto;
-}
-
-#employeeFilters .employee-filter-search input::placeholder {
-  color: #94a3b8;
-}
-
-#employeeFilters select {
-  min-width: 150px;
-  max-width: 170px;
-  padding: 0 34px 0 12px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  color: #334155;
-  font-size: 14px;
-  flex: 0 0 auto;
-}
-
-#employeeFilters .employee-business-combo {
+.employee-business-combo {
   position: relative;
+  flex: 0 1 220px;
   width: 220px;
   min-width: 180px;
-  flex: 0 1 220px;
 }
 
-#employeeFilters .employee-filter-field {
+/* Tampilan field mengikuti trigger select design system (select-menu.css). */
+.employee-business-field {
   display: flex;
   align-items: center;
   width: 100%;
+  height: 40px;
   padding: 0 12px;
-}
-
-#employeeFilters .employee-filter-field:focus-within {
-  border-color: #10b981;
-  box-shadow: 0 0 0 2px rgba(16,185,129,.12);
+  border: 1px solid #e2e8f0;
   background: #fff;
+  font-size: 14px;
+  transition: border-color .15s, box-shadow .15s;
 }
 
-#employeeFilters .employee-filter-field input {
+.employee-business-field:focus-within {
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16,185,129,.18);
+}
+
+.employee-business-field input {
   width: 100%;
   min-width: 0;
   height: 100%;
   border: 0;
   outline: 0;
   background: transparent;
+  color: #1e293b;
 }
 
-#employeeFilters .employee-filter-field input::placeholder {
-  color: #94a3b8;
+/* "Semua Badan Usaha" tampil seperti label select (select-menu.css), bukan placeholder abu-abu. */
+.employee-business-field input::placeholder {
+  color: #000;
+  opacity: 1;
 }
 
-#employeeFilters .employee-business-toggle {
+.employee-business-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 20px;
   height: 30px;
-  border: 0;
-}
-
-#employeeFilters .employee-business-toggle i {
+  color: #64748b;
   font-size: 11px;
 }
 
-#employeeFilters .employee-business-dropdown {
-  position: absolute;
+#employeeBusinessDropdown {
   z-index: 80;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
-}
-
-#employeeFilters .employee-filter-search:focus-within,
-#employeeFilters .employee-filter-field:focus-within,
-#employeeFilters .employee-custom-select:has(.employee-custom-select-trigger[aria-expanded="true"]) .employee-custom-select-trigger {
-  border-color: #10b981;
-  background: #fff;
-  box-shadow: 0 0 0 2px rgba(16,185,129,.12);
-}
-
-#employeeFilters .employee-filter-search input::placeholder,
-#employeeFilters .employee-filter-field input::placeholder {
-  color: #059669;
-}
-
-#employeeFilters .employee-custom-select {
-  position: relative;
-  width: 170px;
-  min-width: 150px;
-  flex: 0 0 auto;
-}
-
-#employeeFilters .employee-custom-select-trigger,
-#employeePageSizeCombo .employee-custom-select-trigger {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  padding: 0 12px;
-}
-
-#employeeFilters .employee-custom-select-trigger i,
-#employeePageSizeCombo .employee-custom-select-trigger i {
-  font-size: 11px;
-}
-
-#employeeFilters .employee-custom-select select,
-#employeePageSizeCombo .employee-hidden-select {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
-#employeeFilters .employee-simple-dropdown,
-#employeePageSizeCombo .employee-simple-dropdown {
-  position: absolute;
-  z-index: 90;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
-}
-
-#employeeFilters input:focus,
-#employeeFilters select:focus {
-  outline: none;
 }
 
 @media (max-width: 1100px) {
-  #employeeFilters.employee-filters {
+  #employeeFilters {
     flex-wrap: wrap;
   }
-  #employeeFilters .employee-business-combo {
+  .employee-business-combo {
     flex: 1 1 200px;
-  }
-  #employeeFilters select {
-    flex: 1 1 150px;
-    max-width: none;
   }
 }
 
 @media (max-width: 900px) {
-  #employeeFilters.employee-filters {
+  #employeeFilters {
     width: 100%;
     justify-content: flex-start;
   }
 }
 
+@media (max-width: 639px) {
+  #employeeFilters .employee-filter-search {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+}
+
 @media (max-width: 520px) {
-  #employeeFilters.employee-filters {
+  #employeeFilters {
     display: grid;
     grid-template-columns: 1fr;
   }
-  #employeeFilters .employee-business-combo,
-  #employeeFilters select,
-  #employeeFilters .employee-filter-search {
+  .employee-business-combo {
     min-width: 0;
   }
 }
 
-/* Koreksi presisi: search Data Karyawan menyamai search Data Badan Usaha (#searchInput). */
-#employeeFilters .employee-filter-search {
-  transition: border-color .15s,box-shadow .15s,background .15s !important;
+
+/* Popup detail: daftar identitas di atas tabel riwayat (bentuk popup dari detail-modal.css). */
+.employee-detail-info {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px 24px;
+  margin: 0;
 }
 
-#employeeFilters .employee-filter-search input::placeholder {
-  color: #94a3b8 !important;
-}
-
-/* Status dan Badan Usaha memakai tampilan field Filter Dashboard: putih, slate, radius 8px, tinggi 40px. */
-#employeeFilters .employee-filter-field,
-#employeeFilters .employee-custom-select-trigger {
-  height: 40px !important;
-  min-height: 40px !important;
-  border: 1px solid #e2e8f0 !important;
-  background: #fff !important;
-  color: #1e293b !important;
-  font-size: 14px !important;
-  transition: border-color .15s,box-shadow .15s,background .15s !important;
-}
-
-#employeeFilters .employee-filter-field>i,
-#employeeFilters .employee-business-toggle,
-#employeeFilters .employee-custom-select-trigger i {
-  color: #64748b !important;
-}
-
-#employeeFilters .employee-filter-field input {
-  color: #1e293b !important;
-}
-
-#employeeFilters .employee-filter-field input::placeholder {
-  color: #64748b !important;
-}
-
-#employeeFilters .employee-filter-field:focus-within,
-#employeeFilters .employee-custom-select:has(.employee-custom-select-trigger[aria-expanded="true"]) .employee-custom-select-trigger {
-  border-color: #10b981 !important;
-  background: #fff !important;
-  box-shadow: 0 0 0 2px rgba(16,185,129,.18) !important;
-}
-
-#employeeFilters .employee-business-combo {
-  width: 220px !important;
-  min-width: 180px !important;
-}
-
-@media(max-width:1100px) {
-  #employeeFilters .employee-filter-search {
-    min-width: 0 !important;
+/* Dua kolom: tiap baris satu pasangan (nama | nomor, tagihan | pembayaran). */
+@media (min-width: 640px) {
+  .employee-detail-info {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-#employeeFilters .employee-filter-field {
-  gap: 0 !important;
+.employee-detail-info dt {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 16px;
 }
 
-#employeeFilters .employee-filter-field input::placeholder {
-  color: #64748b !important;
-}
-
-#employeeFilters .employee-filter-field:focus-within,
-#employeeFilters .employee-custom-select:has(.employee-custom-select-trigger[aria-expanded="true"]) .employee-custom-select-trigger {
-  border-color: #10b981 !important;
-  box-shadow: 0 0 0 2px rgba(16,185,129,.18) !important;
-  background: #fff !important;
-}
-
-/* Searchbar identik dengan Data Badan Usaha (#searchInput): wrapper netral, input memakai class Tailwind yang sama. */
-#employeeFilters .employee-filter-search {
-  height: auto !important;
-  min-width: 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  color: inherit !important;
-}
-
-#employeeFilters .employee-filter-search input::placeholder {
-  color: #94a3b8 !important;
-  opacity: 1 !important;
-}
-
-/* Samakan tampilan aktual search karyawan dengan searchInput di Data Badan Usaha. */
-#employeeFilters .employee-filter-search {
-  width: 18rem !important;
-  flex: 0 0 18rem !important;
-}
-
-#employeeFilters input#employeeSearchInput::placeholder {
-  color: #94a3b8 !important;
-  opacity: 1 !important;
-}
-
-@media(max-width:639px) {
-  #employeeFilters .employee-filter-search {
-    width: 100% !important;
-    max-width: 100% !important;
-    flex: 1 1 100% !important;
-  }
+.employee-detail-info dd {
+  margin-top: 2px;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  overflow-wrap: anywhere;
 }

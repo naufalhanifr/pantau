@@ -1,0 +1,27 @@
+/* Badge status PANTAU: label kecil berwarna di sel tabel atau teks.
+   Markup: <span class="pantau-badge pantau-badge-success">Lunas</span>; tanpa nada tambahan = netral (abu-abu). */
+
+.pantau-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border: 1px solid #e2e8f0;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.pantau-badge-success {
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.pantau-badge-warning {
+  border-color: #fed7aa;
+  background: #fff7ed;
+  color: #c2410c;
+}

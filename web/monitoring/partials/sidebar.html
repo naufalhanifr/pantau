@@ -1,31 +1,8 @@
-<aside class="shrink-0 bg-white border-r border-slate-200 transition-[width,flex-basis] duration-200 flex flex-col" id="appSidebar">
-<div class="px-3 pt-4 pb-3 flex justify-start">
-<button aria-label="Ciutkan sidebar" class="h-9 w-full px-3 rounded-lg hover:bg-slate-100 text-slate-500 flex items-center gap-3 text-sm font-medium" id="sidebarToggle" onclick="toggleSidebar()">
-<i class="fa-solid fa-angles-left w-5 text-center shrink-0">
-</i>
-<span id="sidebarToggleLabel">
-        Sembunyikan
-       </span>
-</button>
-</div>
-<nav class="px-3 py-3 flex flex-col gap-2">
-<button class="sidebar-nav pantau-sidebar-active w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold" data-nav="dashboard" onclick="showPage('dashboard')">
-<i class="fa-solid fa-gauge-high w-5 text-center">
-</i>
-<span class="nav-label">
-        Dashboard
-       </span>
-</button>
-<button class="sidebar-nav w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50" data-nav="monitoring" onclick="showPage('monitoring')">
-<i class="fa-solid fa-building w-5 text-center">
-</i>
-<span class="nav-label">
-        Daftar Badan Usaha
-       </span>
-</button>
-<button class="sidebar-nav w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50" data-nav="employees" onclick="showPage('employees')">
-<i class="fa-solid fa-users w-5 text-center"></i>
-<span class="nav-label">Daftar Karyawan</span>
-</button>
-</nav>
+<aside class="pantau-sidebar" id="appSidebar">
+  <button class="pantau-sidebar-toggle" type="button" aria-label="Ciutkan sidebar" aria-expanded="true" onclick="toggleSidebar()"><i class="fa-solid fa-angles-left" aria-hidden="true"></i><span class="pantau-sidebar-label">Sembunyikan</span></button>
+  <nav class="pantau-sidebar-nav-list">
+    <button class="pantau-sidebar-nav pantau-sidebar-active" type="button" data-nav="dashboard" onclick="showPage('dashboard')"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i><span class="pantau-sidebar-label">Dashboard</span></button>
+    <button class="pantau-sidebar-nav" type="button" data-nav="monitoring" onclick="showPage('monitoring')"><i class="fa-solid fa-building" aria-hidden="true"></i><span class="pantau-sidebar-label">Daftar Badan Usaha</span></button>
+    <button class="pantau-sidebar-nav" type="button" data-nav="employees" onclick="showPage('employees')"><i class="fa-solid fa-users" aria-hidden="true"></i><span class="pantau-sidebar-label">Daftar Karyawan</span></button>
+  </nav>
 </aside>

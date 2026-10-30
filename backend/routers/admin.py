@@ -1,13 +1,14 @@
+from io import BytesIO
 from typing import Any, Literal
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse, Response
 from pydantic import BaseModel, Field
 
-from ..auth import check_password, issue_token, require_admin
-from ..config import MAX_UPLOAD_BYTES, MONTHS, WEB_DIR
+from ..auth import check_login, issue_token, require_admin
+from ..config import ADMIN_PASSWORD, MAX_UPLOAD_BYTES, MONTHS, WEB_DIR
 from ..db import connect, transaction
-from ..services import records
+from ..services import karyawan, records
 from ..services.excel import build_template, parse_workbook
 from ..templating import render_page
 
@@ -19,15 +20,15 @@ class LoginBody(BaseModel):
     password: str
 
 
+Jenis = Literal["tagihan", "pembayaran", "karyawan"]
+
+
 class ImportBody(BaseModel):
-    jenis: Literal["tagihan", "pembayaran", "rekap"]
+    jenis: Jenis
     bulan: str
     replace: bool = True
     source: str = ""
     rows: list[dict[str, Any]] = Field(default_factory=list)
-
-
-Jenis = Literal["tagihan", "pembayaran"]
 
 
 class WorkspaceBody(BaseModel):
@@ -48,9 +49,8 @@ def admin_page():
 
 
 @router.post("/api/admin/login")
-def login(body: LoginBody):
-    if not check_password(body.password):
-        raise HTTPException(status_code=401, detail="Kata sandi tidak sesuai.")
+def login(body: LoginBody, request: Request):
+    check_login(request, "admin", body.password, ADMIN_PASSWORD)
     return {"token": issue_token()}
 
 
@@ -64,25 +64,31 @@ def summary():
 
 
 @api.post("/upload")
-async def upload(file: UploadFile = File(...)):
+def upload(file: UploadFile = File(...), jenis: str = "", bulan: str = ""):
+    # Sengaja sync: parsing Excel berat CPU dan akan membekukan event loop (semua pengguna) jika async.
     if not (file.filename or "").lower().endswith((".xlsx", ".xlsm")):
         raise HTTPException(status_code=422, detail="Format file harus .xlsx atau .xlsm.")
-    content = await file.read()
+    content = file.file.read()
     if len(content) > MAX_UPLOAD_BYTES:
-        raise HTTPException(status_code=413, detail="Ukuran file melebihi 20 MB.")
+        raise HTTPException(status_code=413, detail=f"Ukuran file melebihi {MAX_UPLOAD_BYTES // 1024 // 1024} MB.")
     try:
-        sheets = parse_workbook(content, file.filename or "")
+        if jenis == "karyawan":
+            # Upload per bulan hanya mengirim baris bulan itu ke browser (file setahun ±150 ribu baris).
+            sheets = karyawan.admin_sheets(karyawan.read_workbook(BytesIO(content)), bulan)
+        else:
+            sheets = parse_workbook(content, file.filename or "")
     except Exception as exc:
         raise HTTPException(status_code=422, detail=f"File Excel tidak dapat dibaca: {exc}")
     if not sheets:
-        raise HTTPException(status_code=422, detail="Tidak ada sheet berisi data.")
+        detail = f"Tidak ada data bulan tagih {bulan} di file." if jenis == "karyawan" and bulan else "Tidak ada sheet berisi data."
+        raise HTTPException(status_code=422, detail=detail)
     return {"filename": file.filename, "sheets": sheets}
 
 
 @api.get("/template")
 def template(jenis: Jenis):
     return Response(
-        build_template(MONTHS),
+        karyawan.build_template() if jenis == "karyawan" else build_template(MONTHS),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f'attachment; filename="Template {jenis.title()}.xlsx"'},
     )
@@ -94,7 +100,10 @@ def import_data(body: ImportBody):
     if not body.rows:
         raise HTTPException(status_code=422, detail="Tidak ada baris untuk disimpan.")
     with transaction() as conn:
-        result = records.import_rows(conn, body.jenis, body.bulan, body.rows, body.replace, body.source)
+        if body.jenis == "karyawan":
+            result = karyawan.import_month(conn, body.bulan, body.rows, body.replace, body.source)
+        else:
+            result = records.import_rows(conn, body.jenis, body.bulan, body.rows, body.replace, body.source)
         if not result["ok"]:
             raise HTTPException(status_code=422, detail=result["errors"])
     return result
@@ -105,7 +114,8 @@ def get_records(jenis: Jenis, bulan: str):
     _check_month(bulan)
     conn = connect()
     try:
-        return {"jenis": jenis, "bulan": bulan, "rows": records.month_rows(conn, jenis, bulan)}
+        rows = karyawan.month_rows(conn, bulan) if jenis == "karyawan" else records.month_rows(conn, jenis, bulan)
+        return {"jenis": jenis, "bulan": bulan, "rows": rows}
     finally:
         conn.close()
 
@@ -114,7 +124,10 @@ def get_records(jenis: Jenis, bulan: str):
 def save_records(body: WorkspaceBody):
     _check_month(body.bulan)
     with transaction() as conn:
-        result = records.save_workspace(conn, body.jenis, body.bulan, body.upserts, body.deletes)
+        if body.jenis == "karyawan":
+            result = karyawan.save_workspace(conn, body.bulan, body.upserts, body.deletes)
+        else:
+            result = records.save_workspace(conn, body.jenis, body.bulan, body.upserts, body.deletes)
         if not result["ok"]:
             raise HTTPException(status_code=422, detail=result["errors"])
     return result

@@ -1,70 +1,116 @@
-// Daftar Karyawan: layar kata sandi + logout otomatis setelah 30 menit tidak aktif.
+// Daftar Karyawan: login (dicek server) dan pengamanan sesi karena isinya data pribadi.
+// - Token hanya di memori halaman: tutup tab, reload, atau pindah halaman = keluar.
+// - Kata sandi tidak disimpan browser: field teks bersamaran, bukan type=password (Chrome mengabaikan autocomplete=off).
+// - Keluar otomatis: 30 menit tanpa aktivitas, koneksi terputus, atau sesi ditolak server.
+// - Token dari server juga hanya berlaku 30 menit; selama pengguna aktif, diperpanjang paling cepat tiap 5 menit.
 (function(){
-  const PASSWORD = 'PantauBPJs';
-  const KEY = 'pantauEmployeeAuthenticated';
   const IDLE_LIMIT = 30 * 60 * 1000;
+  const REFRESH_EVERY = 5 * 60 * 1000;
+  const LOGOUT_MESSAGES = {
+    idle: 'Sesi berakhir karena tidak aktif selama 30 menit. Silakan masuk kembali.',
+    offline: 'Koneksi terputus. Silakan masuk kembali setelah jaringan tersambung.',
+    expired: 'Sesi berakhir. Silakan masuk kembali.',
+  };
+  const LOGIN_ERRORS = { 401: 'Kata sandi tidak sesuai.', 429: 'Terlalu banyak percobaan. Coba lagi dalam 15 menit.' };
+  let token = null;
   let idleTimer = null;
   let lastActivity = 0;
-  function logoutEmployeeForIdle(){
-    if(sessionStorage.getItem(KEY)!=='1') return;
-    sessionStorage.removeItem(KEY);
-    if(idleTimer) clearTimeout(idleTimer);
-    idleTimer = null;
-    const panel=document.getElementById('employeeLoginPanel');
-    const content=document.getElementById('employeesProtectedContent');
-    if(panel) panel.classList.remove('hidden');
-    if(content) content.classList.add('hidden');
-    const input=document.getElementById('employeeLoginPassword');
-    if(input) input.value='';
+  let lastRefresh = 0;
+  const passwordInput = () => document.getElementById('employeeLoginPassword');
+  function showLogin(show){
+    document.getElementById('employeeLoginPanel').classList.toggle('hidden', !show);
+    document.getElementById('employeesProtectedContent').classList.toggle('hidden', show);
   }
-  function resetEmployeeIdleTimer(){
-    if(sessionStorage.getItem(KEY)!=='1') return;
-    lastActivity=Date.now();
-    if(idleTimer) clearTimeout(idleTimer);
-    idleTimer=setTimeout(logoutEmployeeForIdle, IDLE_LIMIT);
+  function showMessage(text){
+    const box = document.getElementById('employeeLoginError');
+    box.textContent = text;
+    box.classList.toggle('hidden', !text);
   }
-  function startEmployeeIdleTracking(){
-    ['pointerdown','pointermove','keydown','scroll','touchstart','click'].forEach(type=>document.addEventListener(type,resetEmployeeIdleTimer,{passive:true}));
-    document.addEventListener('visibilitychange',function(){
-      if(document.visibilityState==='visible' && sessionStorage.getItem(KEY)==='1'){
-        if(lastActivity && Date.now()-lastActivity>=IDLE_LIMIT) logoutEmployeeForIdle();
-        else resetEmployeeIdleTimer();
-      }
-    });
+
+  // Header Authorization untuk API karyawan; null bila belum masuk.
+  window.employeeAuthHeaders = () => token ? { Authorization: `Bearer ${token}` } : null;
+  // reason: idle | offline | expired; tanpa reason = keluar tanpa pesan (pindah/tutup halaman).
+  window.logoutEmployee = function(reason){
+    const wasLoggedIn = token !== null;
+    token = null;
+    clearTimeout(idleTimer);
+    passwordInput().value = '';
+    clearEmployeeData();
+    showLogin(true);
+    if (wasLoggedIn && reason) showMessage(LOGOUT_MESSAGES[reason]);
+  };
+
+  async function refreshToken(){
+    const sent = token;
+    lastRefresh = Date.now();
+    try {
+      const response = await fetch('/api/karyawan/refresh', { method: 'POST', headers: employeeAuthHeaders() });
+      if (token !== sent) return;   // sudah keluar saat request berjalan
+      if (response.ok) token = (await response.json()).token;
+      else if (response.status === 401) logoutEmployee('expired');
+    } catch {
+      if (token === sent) logoutEmployee('offline');
+    }
   }
-  startEmployeeIdleTracking();
-  window.employeeDemoLogin = function(event){
-    if(event) event.preventDefault();
-    const input=document.getElementById('employeeLoginPassword');
-    const error=document.getElementById('employeeLoginError');
-    if(input && input.value === PASSWORD){
-      sessionStorage.setItem(KEY,'1');
-      resetEmployeeIdleTimer();
-      input.value='';
-      if(error) error.classList.add('hidden');
-      const panel=document.getElementById('employeeLoginPanel');
-      const content=document.getElementById('employeesProtectedContent');
-      if(panel) panel.classList.add('hidden');
-      if(content) content.classList.remove('hidden');
-      if(typeof renderEmployeeTable==='function') renderEmployeeTable();
+  function onActivity(){
+    if (!token || Date.now() - lastActivity < 1000) return;   // pointermove sangat sering; cukup sekali per detik
+    lastActivity = Date.now();
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => logoutEmployee('idle'), IDLE_LIMIT);
+    if (lastActivity - lastRefresh >= REFRESH_EVERY) refreshToken();
+  }
+  // pointerdown sudah mencakup klik mouse dan sentuhan.
+  ['pointerdown','pointermove','keydown','scroll'].forEach(type => document.addEventListener(type, onActivity, { passive: true }));
+  // Timer di tab latar bisa tertunda (laptop tidur): cek ulang saat tab terlihat lagi.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible' || !token) return;
+    if (Date.now() - lastActivity >= IDLE_LIMIT) logoutEmployee('idle');
+    else onActivity();
+  });
+  window.addEventListener('offline', () => logoutEmployee('offline'));
+  // Pindah atau tutup halaman: hapus data juga dari salinan halaman untuk tombol Back (bfcache).
+  window.addEventListener('pagehide', () => logoutEmployee());
+
+  window.employeeLogin = async function(event){
+    event.preventDefault();
+    const input = passwordInput();
+    const password = input.value;
+    input.value = '';
+    if (!navigator.onLine) {
+      showMessage(LOGOUT_MESSAGES.offline);
       return false;
     }
-    if(error) error.classList.remove('hidden');
-    if(input){input.value='';input.focus();}
+    let response = null;
+    try {
+      response = await fetch('/api/karyawan/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password }) });
+    } catch {}
+    if (response?.ok) {
+      token = (await response.json()).token;
+      lastRefresh = Date.now();
+      lastActivity = 0;
+      showMessage('');
+      onActivity();
+      showLogin(false);
+      showEmployeesPage();
+      return false;
+    }
+    showMessage(LOGIN_ERRORS[response?.status] || 'Server tidak dapat dihubungi. Coba lagi.');
+    input.focus();
     return false;
   };
+
+  // Field bersamaran memakai -webkit-text-security; browser yang tidak mendukungnya kembali ke type=password.
+  const canMask = () => CSS.supports('-webkit-text-security', 'disc');
   window.toggleEmployeePassword = function(){
-    const input=document.getElementById('employeeLoginPassword');
-    const eye=document.getElementById('employeePasswordEye');
-    if(!input)return;
-    const show=input.type==='password'; input.type=show?'text':'password';
-    if(eye){eye.classList.toggle('fa-eye',!show);eye.classList.toggle('fa-eye-slash',show);}
+    const input = passwordInput();
+    let show;
+    if (canMask()) show = !input.classList.toggle('is-masked');
+    else { input.type = input.type === 'password' ? 'text' : 'password'; show = input.type === 'text'; }
+    const eye = document.getElementById('employeePasswordEye');
+    eye.classList.toggle('fa-eye', !show);
+    eye.classList.toggle('fa-eye-slash', show);
   };
-  document.addEventListener('DOMContentLoaded',function(){
-    const authed=sessionStorage.getItem(KEY)==='1';
-    const panel=document.getElementById('employeeLoginPanel');
-    const content=document.getElementById('employeesProtectedContent');
-    if(panel) panel.classList.toggle('hidden',authed);
-    if(content) content.classList.toggle('hidden',!authed);
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!canMask()) { passwordInput().classList.remove('is-masked'); passwordInput().type = 'password'; }
   });
 })();
