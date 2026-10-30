@@ -104,13 +104,13 @@
   window.toggleEmployeePassword = function(){
     const input = passwordInput();
     let show;
-    if (canMask()) show = !input.classList.toggle('is-masked');
+    if (canMask()) { show = input.style.webkitTextSecurity !== 'none'; input.style.webkitTextSecurity = show ? 'none' : 'disc'; }
     else { input.type = input.type === 'password' ? 'text' : 'password'; show = input.type === 'text'; }
     const eye = document.getElementById('employeePasswordEye');
     eye.classList.toggle('fa-eye', !show);
     eye.classList.toggle('fa-eye-slash', show);
   };
   document.addEventListener('DOMContentLoaded', () => {
-    if (!canMask()) { passwordInput().classList.remove('is-masked'); passwordInput().type = 'password'; }
+    if (!canMask()) passwordInput().type = 'password';
   });
 })();

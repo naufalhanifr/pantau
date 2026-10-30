@@ -33,6 +33,9 @@ async def security_headers(request: Request, call_next):
     # Respons API berisi data pribadi: jangan disimpan di cache browser/proxy.
     if request.url.path.startswith("/api/"):
         response.headers["Cache-Control"] = "no-store"
+    else:
+        # Halaman & aset statis: browser wajib cek ulang (304 jika tidak berubah) agar versi baru langsung terpakai.
+        response.headers["Cache-Control"] = "no-cache"
     return response
 
 app.include_router(monitoring.router)

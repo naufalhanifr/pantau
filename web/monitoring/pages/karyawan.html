@@ -6,8 +6,8 @@
     <p class="pantau-login-description">Masukkan kata sandi untuk mengakses data karyawan.</p>
     <form id="employeeLoginForm" autocomplete="off" onsubmit="return employeeLogin(event)">
       <label class="pantau-password-wrap" for="employeeLoginPassword">
-        <!-- Sengaja bukan type="password" agar browser tidak menawarkan simpan kata sandi; disamarkan lewat .is-masked. -->
-        <input id="employeeLoginPassword" class="is-masked" type="text" placeholder="Masukkan kata sandi" aria-label="Kata sandi" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" required />
+        <!-- Sengaja bukan type="password" agar browser tidak menawarkan simpan kata sandi; disamarkan lewat style inline (tidak bergantung CSS yang bisa tertahan cache). -->
+        <input id="employeeLoginPassword" style="-webkit-text-security: disc" type="text" placeholder="Masukkan kata sandi" aria-label="Kata sandi" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" required />
         <button class="pantau-password-toggle" type="button" aria-label="Tampilkan kata sandi" onclick="toggleEmployeePassword()"><i id="employeePasswordEye" class="fa-solid fa-eye"></i></button>
       </label>
       <p id="employeeLoginError" class="pantau-login-error hidden">Kata sandi tidak sesuai.</p>
