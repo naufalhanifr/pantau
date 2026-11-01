@@ -8,20 +8,20 @@ Pemantauan pembayaran iuran BPJS Kesehatan KC Bekasi.
 ## Menjalankan
 
 ```bash
-export PANTAU_ADMIN_PASSWORD='kata-sandi-admin'   # wajib diganti
-export PANTAU_SECRET_KEY='string-acak-panjang'     # untuk token sesi admin
-./run.sh                                           # http://localhost:8000
+./run.sh    # http://localhost:8000
 ```
+
+Kata sandi dan kunci sesi dibaca dari file `.env` di folder ini (format `NAMA='nilai'`, satu per baris). File ini dan `server.env` ada di `.gitignore` dan tidak ikut `deploy.sh`: jangan di-commit atau dibagikan.
 
 | Variabel | Default | Keterangan |
 |---|---|---|
 | `PANTAU_ADMIN_PASSWORD` | `admin-pantau` | Kata sandi web admin |
 | `PANTAU_KARYAWAN_PASSWORD` | `PantauBPJs` | Kata sandi menu Daftar Karyawan (dicek server) |
-
-Kata sandi bawaan hanya untuk uji lokal: diterima jika dibuka langsung di komputer server (`localhost`), ditolak dari IP lain atau lewat nginx. Di server, isi kedua variabel kata sandi.
 | `PANTAU_SECRET_KEY` | acak tiap start | Kunci tanda tangan token admin & karyawan. Tanpa env, semua sesi berakhir saat server restart |
 | `PANTAU_DB` | `Data/pantau.db` | Lokasi database SQLite |
 | `PANTAU_TOKEN_TTL` | `28800` | Masa berlaku sesi admin (detik) |
+
+Kata sandi bawaan hanya untuk uji lokal tanpa `.env`: diterima jika dibuka langsung di komputer server (`localhost`), ditolak dari IP lain atau lewat nginx. Di server, kata sandi diisi lewat `/etc/pantau/pantau.env` (hanya bisa dibaca root, dipasang dari `server.env`).
 
 ### Keamanan menu Daftar Karyawan (data pribadi)
 

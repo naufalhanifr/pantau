@@ -4,3 +4,7 @@ __pycache__/
 .DS_Store
 Data/*.db
 Data/*.xlsx
+
+# Rahasia lokal & server: jangan pernah di-commit
+.env
+server.env
