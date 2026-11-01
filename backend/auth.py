@@ -3,17 +3,20 @@ import hashlib
 import hmac
 import threading
 import time
+from urllib.parse import urlsplit
 
 from fastapi import Header, HTTPException, Request
 
-from .config import ADMIN_PASSWORD, LOGIN_LOCK_SECONDS, LOGIN_MAX_FAILURES, SECRET_KEY, TOKEN_TTL_SECONDS
+from .config import LOCAL_ONLY_PASSWORDS, LOGIN_LOCK_SECONDS, LOGIN_MAX_FAILURES, SECRET_KEY, TOKEN_TTL_SECONDS
+
+LOOPBACK = ("127.0.0.1", "::1", "localhost")
 
 
 def _sign(payload: str) -> str:
     return hmac.new(SECRET_KEY.encode(), payload.encode(), hashlib.sha256).hexdigest()
 
 
-def check_password(password: str, expected: str = ADMIN_PASSWORD) -> bool:
+def check_password(password: str, expected: str) -> bool:
     return hmac.compare_digest(password.encode(), expected.encode())
 
 
@@ -24,8 +27,19 @@ _failed_logins: dict[tuple[str, str], list[float]] = {}
 _login_lock = threading.Lock()
 
 
+def _is_local(request: Request) -> bool:
+    """Dibuka langsung di komputer server, bukan dari IP lain dan bukan lewat proxy.
+    Tanda proxy: header X-Forwarded-For/X-Real-IP/Forwarded, Host berupa nama domain, atau HTTP/1.0 (bawaan proxy_pass nginx)."""
+    proxied = any(name in request.headers for name in ("x-forwarded-for", "x-real-ip", "forwarded"))
+    host = urlsplit("//" + request.headers.get("host", "")).hostname
+    return (bool(request.client) and request.client.host in LOOPBACK and not proxied
+            and host in LOOPBACK and request.scope.get("http_version") != "1.0")
+
+
 def check_login(request: Request, scope: str, password: str, expected: str) -> None:
     """Salah kata sandi LOGIN_MAX_FAILURES kali dari satu IP mengunci login scope itu selama LOGIN_LOCK_SECONDS."""
+    if expected in LOCAL_ONLY_PASSWORDS and not _is_local(request):
+        raise HTTPException(status_code=403, detail="Kata sandi bawaan hanya untuk uji lokal. Atur kata sandi di server lewat environment variable.")
     key = (scope, request.client.host if request.client else "")
     now = time.time()
     with _login_lock:
@@ -52,7 +66,8 @@ def _verify(authorization: str, role: str, label: str) -> None:
     except Exception:
         raise HTTPException(status_code=401, detail=f"Sesi {label} tidak valid. Silakan masuk kembali.")
     raw = f"{token_role}:{expires}"
-    if token_role != role or not hmac.compare_digest(signature, _sign(raw)) or int(expires) < time.time():
+    # Bandingkan bytes: compare_digest menolak str non-ASCII dengan TypeError (jadi 500, bukan 401).
+    if token_role != role or not hmac.compare_digest(signature.encode(), _sign(raw).encode()) or int(expires) < time.time():
         raise HTTPException(status_code=401, detail=f"Sesi {label} berakhir. Silakan masuk kembali.")
 
 

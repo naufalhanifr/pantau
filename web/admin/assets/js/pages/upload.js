@@ -7,8 +7,8 @@ const UPLOAD_JENIS = {
     pembayaran: { prefix: "bayar", key: "kode_bu", keyLabel: "KODE BU", count: "Jumlah BU" },
     karyawan: {
         prefix: "karyawan", key: "noka_keluarga", keyLabel: "Noka Peserta/Keluarga", count: "Jumlah Peserta", fixed: true,
-        bulk: "File dengan satu sheet per bulan. Bulan dibaca dari kolom Bulan Tagih (atau nama sheet); setiap bulan yang ada di file menjadi satu tab.",
-        format: "Per sheet: Kode BU, Nama BU, Noka Peserta, ..., Bulan Tagih, lalu Tanggal Bayar dan Jumlah Bayar bulan itu (.xlsx)",
+        // File setahun ±150 ribu baris terlalu berat untuk ditinjau sekaligus di browser: hanya upload per bulan.
+        monthOnly: true,
     },
 };
 const UPLOAD_DEFAULT_HINTS = {
@@ -35,6 +35,7 @@ function initUpload() {
     if (uploadJenis && uploadJenis !== activeAdminJenis) resetUpload();
     const config = UPLOAD_JENIS[activeAdminJenis];
     document.getElementById("uploadCountHeader").textContent = config.count;
+    document.getElementById("uploadBulkCard").classList.toggle("hidden", Boolean(config.monthOnly));
     document.getElementById("uploadBulkHint").textContent = config.bulk || UPLOAD_DEFAULT_HINTS.bulk;
     document.getElementById("uploadFormatHint").textContent = config.format || UPLOAD_DEFAULT_HINTS.format;
     loadUploadMonths();
@@ -121,6 +122,8 @@ async function handleUploadFile(file, month = null) {
     const label = document.getElementById("uploadFileName");
     zone.classList.add("is-loading");
     label.textContent = `Membaca ${file.name}...`;
+    // Kotak upload bisa tersembunyi (Karyawan) atau di luar layar: beri tanda file sedang dibaca.
+    if (month) showToast(`Membaca ${file.name} untuk bulan ${month}...`, "info");
     try {
         const form = new FormData();
         form.append("file", file);
@@ -178,8 +181,8 @@ function toggleUploadSheet(index, checked) {
 function renderUploadTabs() {
     document.getElementById("uploadSheetTabs").innerHTML = uploadSheets.map((sheet, i) => `
       <div class="admin-sheet-tab ${i === uploadActive ? "is-active" : ""}">
-        <input type="checkbox" ${sheet.include ? "checked" : ""} title="Impor sheet ini" onchange="toggleUploadSheet(${i}, this.checked)"/>
-        <span class="admin-sheet-tab-label" role="button" tabindex="0" onclick="selectUploadSheet(${i})" onkeydown="if(event.key==='Enter')selectUploadSheet(${i})">${escapeHtml(sheet.name)} <small>${sheet.bulan && sheet.bulan !== sheet.name ? `${sheet.bulan} · ` : sheet.bulan ? "" : "bulan? · "}${formatNumber(sheet.data.length)} baris</small></span>
+        <input type="checkbox" ${sheet.include ? "checked" : ""} title="Impor sheet ini" aria-label="Impor sheet ${escapeHtml(sheet.name)}" onchange="toggleUploadSheet(${i}, this.checked)"/>
+        <span class="admin-sheet-tab-label" role="button" tabindex="0" onclick="selectUploadSheet(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectUploadSheet(${i})}">${escapeHtml(sheet.name)} <small>${sheet.bulan && sheet.bulan !== sheet.name ? `${sheet.bulan} · ` : sheet.bulan ? "" : "bulan? · "}${formatNumber(sheet.data.length)} baris</small></span>
       </div>`).join("");
     const chosen = uploadSheets.filter(sheet => sheet.include);
     document.getElementById("uploadSummary").textContent =

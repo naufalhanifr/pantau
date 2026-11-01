@@ -22,6 +22,11 @@
     toggle.setAttribute('aria-expanded',String(!collapsed));
     const icon=toggle.querySelector('i'); if(icon) icon.className='fa-solid '+(collapsed?'fa-angles-right':'fa-angles-left');
   };
+  // HP: sidebar terbuka menutupi konten, jadi mulai tertutup dan menutup lagi setelah menu dipilih.
+  const phone=window.matchMedia('(max-width: 640px)');
+  const collapseOnPhone=()=>{const s=document.querySelector('.pantau-sidebar');if(phone.matches&&s&&!s.classList.contains('is-collapsed'))window.toggleSidebar();};
+  collapseOnPhone();
+  document.addEventListener('click',e=>{if(e.target.closest?.('.pantau-sidebar-nav'))collapseOnPhone();});
   updateClock(); setInterval(updateClock,1000);
   syncHeaderHeight();
   window.addEventListener('load',syncHeaderHeight);

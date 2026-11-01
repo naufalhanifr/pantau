@@ -11,7 +11,7 @@
     offline: 'Koneksi terputus. Silakan masuk kembali setelah jaringan tersambung.',
     expired: 'Sesi berakhir. Silakan masuk kembali.',
   };
-  const LOGIN_ERRORS = { 401: 'Kata sandi tidak sesuai.', 429: 'Terlalu banyak percobaan. Coba lagi dalam 15 menit.' };
+  const LOGIN_ERRORS = { 401: 'Kata sandi tidak sesuai.', 403: 'Login belum bisa dipakai karena kata sandi server belum diatur. Hubungi admin PANTAU.', 429: 'Terlalu banyak percobaan. Coba lagi dalam 15 menit.' };
   let token = null;
   let idleTimer = null;
   let lastActivity = 0;

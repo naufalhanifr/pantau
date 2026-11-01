@@ -7,9 +7,16 @@
   border: 1px solid #a7f3d0;
   background: #fff;
   box-shadow: 0 12px 28px rgba(15,23,42,.14);
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 #f1f5f9;
   overscroll-behavior: contain;
+}
+
+/* Scrollbar selalu terlihat (juga di macOS yang menyembunyikan scrollbar sistem). Chrome mengabaikan ::-webkit-scrollbar
+   bila scrollbar-width/scrollbar-color diset, jadi properti standar itu hanya untuk Firefox. */
+@supports not selector(::-webkit-scrollbar) {
+  .pantau-dropdown-list {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+  }
 }
 
 .pantau-dropdown-list::-webkit-scrollbar {
@@ -49,7 +56,7 @@
 }
 
 .pantau-dropdown-option:focus-visible {
-  outline: 2px solid #10b981;
+  outline: 2px solid #059669;
   outline-offset: -2px;
 }
 
@@ -61,22 +68,4 @@
 .pantau-dropdown-option i {
   color: #059669;
   font-size: 12px;
-}
-
-/* Indikator scroll custom: tetap terlihat di macOS saat scrollbar sistem tersembunyi. */
-.pantau-dropdown-scroll-indicator {
-  position: fixed;
-  z-index: 2147483647;
-  width: 6px;
-  background: #f1f5f9;
-  pointer-events: none;
-}
-
-.pantau-dropdown-scroll-indicator-thumb {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  min-height: 22px;
-  background: #cbd5e1;
 }

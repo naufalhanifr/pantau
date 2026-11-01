@@ -1,16 +1,16 @@
 <section class="hidden" id="employeesPage">
   <div id="employeeLoginPanel" class="pantau-login-card max-w-full mx-auto mb-6">
-    <div class="pantau-login-icon"><i class="fa-solid fa-shield-halved"></i></div>
-    <div class="pantau-login-badge"><i class="fa-solid fa-lock"></i><span>AKSES TERBATAS</span></div>
+    <div class="pantau-login-icon"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></div>
     <h2>Masuk Data Karyawan</h2>
     <p class="pantau-login-description">Masukkan kata sandi untuk mengakses data karyawan.</p>
     <form id="employeeLoginForm" autocomplete="off" onsubmit="return employeeLogin(event)">
+      <label class="pantau-login-label" for="employeeLoginPassword">Kata sandi</label>
       <label class="pantau-password-wrap" for="employeeLoginPassword">
         <!-- Sengaja bukan type="password" agar browser tidak menawarkan simpan kata sandi; disamarkan lewat style inline (tidak bergantung CSS yang bisa tertahan cache). -->
-        <input id="employeeLoginPassword" style="-webkit-text-security: disc" type="text" placeholder="Masukkan kata sandi" aria-label="Kata sandi" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" required />
+        <input id="employeeLoginPassword" style="-webkit-text-security: disc" type="text" placeholder="Masukkan kata sandi" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" required />
         <button class="pantau-password-toggle" type="button" aria-label="Tampilkan kata sandi" onclick="toggleEmployeePassword()"><i id="employeePasswordEye" class="fa-solid fa-eye"></i></button>
       </label>
-      <p id="employeeLoginError" class="pantau-login-error hidden">Kata sandi tidak sesuai.</p>
+      <p id="employeeLoginError" class="pantau-login-error hidden" role="alert">Kata sandi tidak sesuai.</p>
       <button class="pantau-login-submit" type="submit"><span>Masuk</span></button>
     </form>
     <div class="pantau-login-footer"><i class="fa-solid fa-shield-halved"></i><span>Data Internal BPJS Kesehatan KC Bekasi</span></div>
@@ -22,9 +22,36 @@
         <p class="text-sm text-slate-500 mt-1">Daftar peserta dan anggota keluarga yang tercantum pada file sumber badan usaha.</p>
       </div>
       <!-- Opsi bulan diisi karyawan.js dari bulan tagih yang ada di database. -->
-      <label class="block shrink-0 w-full lg:w-[180px] text-xs font-semibold text-slate-500">Bulan tagih
-        <select class="pantau-select w-full" id="employeeMonthFilter" aria-label="Bulan tagih" onchange="loadEmployeeMeta()"></select>
+      <label class="pantau-select-field shrink-0"><span class="pantau-select-field-label">Bulan tagih</span>
+        <select class="pantau-select" id="employeeMonthFilter" aria-label="Bulan tagih" onchange="loadEmployeeMeta()"></select>
       </label>
+    </div>
+    <!-- Ringkasan status bayar bulan terpilih; hanya berubah saat bulan tagih diganti, tidak ikut filter tabel. Diisi karyawan.js. -->
+    <div class="grid gap-4 items-stretch w-full" id="employeeSummaryCards">
+      <div class="summary-card pantau-card relative overflow-hidden group min-w-0">
+        <div class="flex items-center gap-2 min-h-8">
+          <div class="w-8 h-8 shrink-0 bg-emerald-600 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i></div>
+          <p class="text-sm font-semibold uppercase tracking-wide text-slate-500">Total Peserta Bayar</p>
+        </div>
+        <h3 class="text-2xl lg:text-3xl font-extrabold text-slate-900 mt-5 leading-tight" id="employeeCardLunas">0</h3>
+        <div class="flex items-center gap-1.5 mt-2 text-xs text-emerald-700 font-medium"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span>Bayar lunas periode <span class="employee-summary-period"></span></span></div>
+      </div>
+      <div class="summary-card pantau-card relative overflow-hidden group min-w-0">
+        <div class="flex items-center gap-2 min-h-8">
+          <div class="w-8 h-8 shrink-0 bg-amber-500 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-coins" aria-hidden="true"></i></div>
+          <p class="text-sm font-semibold uppercase tracking-wide text-slate-500">Total Peserta Nyicil</p>
+        </div>
+        <h3 class="text-2xl lg:text-3xl font-extrabold text-slate-900 mt-5 leading-tight" id="employeeCardNyicil">0</h3>
+        <div class="flex items-center gap-1.5 mt-2 text-xs text-amber-700 font-medium"><span class="w-3 h-3 shrink-0 bg-amber-500 text-white !rounded-full flex items-center justify-center text-[7px]" aria-hidden="true"><i class="fa-solid fa-coins"></i></span><span>Bayar nyicil periode <span class="employee-summary-period"></span></span></div>
+      </div>
+      <div class="summary-card pantau-card relative overflow-hidden group min-w-0">
+        <div class="flex items-center gap-2 min-h-8">
+          <div class="w-8 h-8 shrink-0 bg-rose-500 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i></div>
+          <p class="text-sm font-semibold uppercase tracking-wide text-slate-500">Total Peserta Belum Bayar</p>
+        </div>
+        <h3 class="text-2xl lg:text-3xl font-extrabold text-slate-900 mt-5 leading-tight" id="employeeCardBelum">0</h3>
+        <div class="flex items-center gap-1.5 mt-2 text-xs text-rose-600 font-medium"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span>Belum ada pembayaran periode <span class="employee-summary-period"></span></span></div>
+      </div>
     </div>
     <div class="pantau-card overflow-hidden">
       <div class="mb-4 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -62,7 +89,7 @@
         </div>
       </div>
       <div class="pantau-table-scroll" id="employeeTableScroll">
-        <table class="pantau-table">
+        <table class="pantau-table"><colgroup><col class="w-[64px]"><col class="w-[220px]"><col class="w-[220px]"><col class="w-[220px]"><col class="w-[150px]"><col class="w-[150px]"><col class="w-[160px]"><col class="w-[180px]"><col class="w-[180px]"><col class="w-[140px]"><col class="w-[110px]"></colgroup>
           <thead>
             <tr>
               <th class="w-12">No</th>
@@ -78,7 +105,7 @@
               <th class="text-center">Aksi</th>
             </tr>
           </thead>
-          <tbody id="employeeTableBody"></tbody>
+          <tbody id="employeeTableBody"><tr><td colspan="11" class="pantau-empty-state">Memuat data...</td></tr></tbody>
         </table>
       </div>
       <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -111,8 +138,8 @@
         <p id="employeeDetailPeriod">Periode -</p>
       </div>
       <div class="pantau-table-scroll">
-        <table class="pantau-table min-w-[560px]">
-          <thead><tr><th>Bulan</th><th class="text-center">Bulan Menunggak</th><th class="text-right">Tagihan</th><th>Tanggal Bayar</th><th class="text-right">Jumlah Bayar</th></tr></thead>
+        <table class="pantau-table min-w-[740px]"><colgroup><col><col class="w-[150px]"><col class="w-[160px]"><col class="w-[140px]"><col class="w-[160px]"></colgroup>
+          <thead><tr><th>Bulan</th><th class="text-center">Bulan Menunggak</th><th class="text-right">Tagihan</th><th>Tanggal Bayar</th><th class="text-right">Nominal Bayar</th></tr></thead>
           <tbody id="employeeDetailHistory"></tbody>
         </table>
       </div>

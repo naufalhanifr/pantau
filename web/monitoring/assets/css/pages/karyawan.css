@@ -1,22 +1,16 @@
 /* Menu Daftar Karyawan. Kartu login, tabel, select, search, dropdown, dan pagination memakai design system; sisanya kelas Tailwind di karyawan.html. */
 
-/* Tabel: lebar mengikuti isi, scroll horizontal di dalam wrapper persegi. */
-#employeeTableScroll .pantau-table {
-  width: max-content;
-  min-width: 100%;
+/* Kartu ringkasan status bayar: pola sama dengan #summaryCards di dashboard.css. */
+#employeeSummaryCards {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
 }
 
-#employeeTableScroll th,
-#employeeTableScroll td {
-  white-space: nowrap;
+#employeeSummaryCards .summary-card p {
+  line-height: 1.25rem !important;
+  font-weight: 700 !important;
 }
 
-/* Kolom nama: Badan Usaha, Peserta, Peserta/Keluarga. */
-#employeeTableScroll th:nth-child(2),
-#employeeTableScroll th:nth-child(3),
-#employeeTableScroll th:nth-child(4) {
-  min-width: 180px;
-}
+/* Tabel: lebar kolom tetap dari <colgroup> di karyawan.html, scroll horizontal di dalam wrapper persegi. */
 
 #employeeTableScroll thead tr {
   border-bottom: 1px solid #e2e8f0 !important;
@@ -80,7 +74,7 @@
   display: flex;
   align-items: center;
   width: 100%;
-  height: 40px;
+  height: 44px;
   padding: 0 12px;
   border: 1px solid #e2e8f0;
   background: #fff;
@@ -89,7 +83,7 @@
 }
 
 .employee-business-field:focus-within {
-  border-color: #10b981;
+  border-color: #059669;
   box-shadow: 0 0 0 2px rgba(16,185,129,.18);
 }
 

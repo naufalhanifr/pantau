@@ -9,17 +9,16 @@
   --pantau-ink: #0f172a;
 }
 
-/* ---------- Login ---------- */
 .admin-login {
   display: flex;
   min-height: 100vh;
+  min-height: 100dvh;
   align-items: center;
   justify-content: center;
   padding: 24px 0;
 }
 .admin-login.hidden { display: none; }
 
-/* ---------- Header ---------- */
 /* Header, sidebar, dan footer memakai design system (app-shell.css). */
 .admin-badge {
   display: inline-block;
@@ -35,10 +34,9 @@
   vertical-align: middle;
 }
 
-/* ---------- Page ---------- */
 .admin-page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
 .admin-page-head h2 { margin: 0; color: var(--pantau-ink); font-size: clamp(1.5rem, 2.2vw, 1.875rem); font-weight: 700; line-height: 1.25; }
-.admin-page-kicker { color: #059669; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.admin-page-kicker { color: #047857; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
 .admin-page-head p { margin-top: 4px; color: var(--pantau-muted); font-size: 14px; line-height: 1.5; }
 
 .admin-card-head { margin-bottom: 16px; }
@@ -58,13 +56,12 @@
 .admin-pill-ok { background: #ecfdf5; color: var(--pantau-green-dark); }
 .admin-pill-empty { background: #f1f5f9; color: var(--pantau-muted); }
 
-/* ---------- Buttons & fields ---------- */
 .admin-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 40px;
+  height: 44px;
   padding: 0 14px;
   border: 1px solid var(--pantau-border);
   border-radius: 8px;
@@ -85,7 +82,7 @@
 .admin-field-grow { flex: 0 1 288px; }
 .admin-select {
   box-sizing: border-box;
-  height: 40px;
+  height: 44px;
   min-width: 170px;
   padding: 8px 12px;
   border: 1px solid var(--pantau-border);
@@ -94,11 +91,10 @@
   color: #1e293b;
   font-size: 14px;
 }
-.admin-select:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 2px rgba(16, 185, 129, .18); }
-.admin-check { display: inline-flex; align-items: center; gap: 8px; height: 40px; color: #334155; font-size: 14px; }
+.admin-select:focus { outline: none; border-color: #059669; box-shadow: 0 0 0 2px rgba(16, 185, 129, .18); }
+.admin-check { display: inline-flex; align-items: center; gap: 8px; height: 44px; color: #334155; font-size: 14px; }
 .admin-check input { width: 16px; height: 16px; accent-color: #059669; }
 
-/* ---------- Upload ---------- */
 .admin-dropzone {
   display: flex;
   flex-direction: column;
@@ -145,14 +141,13 @@
 .admin-mapping .admin-field.is-missing .admin-select { border-color: #f43f5e; }
 
 .admin-row-actions { display: flex; justify-content: flex-end; gap: 8px; }
-.admin-row-actions .admin-btn { height: 34px; }
+.admin-row-actions .admin-btn { height: 44px; }
 .admin-upload-target { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; padding: 10px 14px; border: 1px solid #a7f3d0; border-radius: 8px; background: #ecfdf5; color: #065f46; font-size: 14px; }
 .admin-upload-target i { margin-top: 3px; }
 .admin-upload-warning { color: #b45309; font-size: 13px; }
 
 .admin-grid-hint { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: var(--pantau-muted); font-size: 12px; }
 
-/* ---------- Toast ---------- */
 .admin-toast-stack { position: fixed; top: calc(var(--pantau-header-height, 73px) + 12px); right: 20px; z-index: 100; display: flex; flex-direction: column; gap: 8px; max-width: min(420px, calc(100vw - 40px)); }
 .admin-toast {
   display: flex;
@@ -171,4 +166,5 @@
 .admin-toast-error { border-color: #fecdd3; background: #fff1f2; color: #9f1239; }
 .admin-toast-info { border-color: #bfdbfe; background: #eff6ff; color: #1e40af; }
 @keyframes admin-toast-in { from { opacity: 0; transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { .admin-toast { animation: none; } }
 .admin-sheet-tab-label { cursor: pointer; }

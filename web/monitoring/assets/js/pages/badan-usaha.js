@@ -16,9 +16,9 @@ function applyMonitoringFilter(delay, successText, errorPrefix) {
 function syncMonitoringMonthFilter() {
     const start = document.getElementById("monitorStartMonth");
     const end = document.getElementById("monitorEndMonth");
-    let a = Number(start.value || 9), b = Number(end.value || 9);
+    let a = Number(start.value || 1), b = Number(end.value || PANTAU_LATEST_MONTH || 12);
     if (a > b) { a = b; start.value = String(a); }
-    const period = a === b ? `${DEMO_MONTHS[b - 1]} 2026` : `${DEMO_MONTHS[a - 1]} sd ${DEMO_MONTHS[b - 1]} 2026`;
+    const period = a === b ? `${MONTHS[b - 1]} ${PANTAU_YEAR}` : `${MONTHS[a - 1]} sd ${MONTHS[b - 1]} ${PANTAU_YEAR}`;
     setText("monitoringPeriodLabel", period);
     applyMonitoringFilter(200, `Filter Monitoring berhasil diterapkan untuk periode ${period}.`, "Filter Monitoring gagal diterapkan");
 }
@@ -43,14 +43,14 @@ async function loadRecords() {
     const first = (currentPage - 1) * pageSize;
     renderTable(rows.slice(first, first + pageSize), first);
     setText("tableRecordCount", `${totalRecords.toLocaleString("id-ID")} badan usaha ditemukan`);
-    setText("paginationInfo", totalRecords === 0 ? "Menampilkan 0 dari 0 data" : `Menampilkan ${first + 1}–${Math.min(first + pageSize, totalRecords)} dari ${totalRecords.toLocaleString("id-ID")} data`);
+    setText("paginationInfo", totalRecords === 0 ? "Menampilkan 0 dari 0 data" : `Menampilkan ${first + 1}-${Math.min(first + pageSize, totalRecords)} dari ${totalRecords.toLocaleString("id-ID")} data`);
     document.getElementById("paginationControls").innerHTML = pantauPagination(currentPage, totalPages, page => `goMonitoringPage(${page})`);
 }
 
 // Warna kolom nominal, padding, dan font sel diatur oleh design system table.css.
 function renderTable(rows, first) {
     document.getElementById("tableBody").innerHTML = !rows.length
-        ? '<tr><td colspan="7" class="pantau-empty-state">Tidak ada data yang cocok.</td></tr>'
+        ? '<tr><td colspan="7" class="pantau-empty-state">Tidak ada badan usaha pada rentang bulan dan pencarian ini. Ubah filter untuk melihat data lain.</td></tr>'
         : rows.map((item, i) => `<tr class="transition">
             <td>${(first + i + 1).toLocaleString("id-ID")}</td>
             <td>${escapeHtml(item.kode_bu)}</td>
@@ -58,7 +58,7 @@ function renderTable(rows, first) {
             <td class="text-right">${formatRupiah(item.tagihan)}</td>
             <td class="text-right">${formatRupiah(item.bayar)}</td>
             <td class="text-right">${formatRupiah(item.sisa)}</td>
-            <td class="text-center"><button type="button" data-detail-code="${escapeHtml(item.kode_bu)}" class="inline-flex items-center justify-center gap-2 border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition" onclick="openBusinessDetail(this.dataset.detailCode)"><i class="fa-regular fa-eye"></i><span>Detail</span></button></td>
+            <td class="text-center"><button type="button" data-detail-code="${escapeHtml(item.kode_bu)}" class="inline-flex min-h-[44px] items-center justify-center gap-2 border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition" onclick="openBusinessDetail(this.dataset.detailCode)"><i class="fa-regular fa-eye"></i><span>Detail</span></button></td>
         </tr>`).join("");
 }
 

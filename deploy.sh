@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Deploy PANTAU ke production: isi server disamakan persis dengan folder ini (file lama yang tidak ada di sini dihapus).
-# Data/ server tidak disentuh, kecuali pakai --with-data (menimpa Data/ server dengan Data/ lokal).
+# Deploy PANTAU ke production: kode aplikasi di server disamakan persis dengan folder ini.
+# Data/ server tidak disentuh, kecuali pakai --with-data (menimpa Data/ server dengan Data/ lokal; database server dibackup dulu).
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -8,15 +8,29 @@ HOST=pantau@103.93.135.213
 APP=/var/www/pantau
 SSH="ssh -i $HOME/.ssh/NAUFAL -o IdentitiesOnly=yes"
 
-EXCLUDES=(--exclude /.git --exclude /.venv --exclude /tests --exclude __pycache__ --exclude .DS_Store --exclude /CLAUDE.md --exclude /nginx-admin.conf)
-[ "${1:-}" = "--with-data" ] || EXCLUDES+=(--exclude /Data)
+# Daftar putih: hanya yang dibutuhkan aplikasi saat jalan. Folder alat bantu/agent AI (.claude, .cursor, ...),
+# test, dan konfigurasi nginx tidak pernah ikut, termasuk folder baru yang muncul nanti.
+INCLUDES=(--include "/backend/***" --include "/web/***" --include /requirements.txt --include /run.sh)
+if [ "${1:-}" = "--with-data" ]; then
+  INCLUDES+=(--include "/Data/***")
+  # Backup di luar Data/: rsync --delete menghapus file Data/ server yang tidak ada di lokal.
+  $SSH "$HOST" "mkdir -p ~/pantau-backup && [ ! -f $APP/Data/pantau.db ] || cp $APP/Data/pantau.db ~/pantau-backup/pantau-\$(date +%Y%m%d-%H%M%S).db"
+fi
 
-rsync -az --delete "${EXCLUDES[@]}" -e "$SSH" ./ "$HOST:$APP/"
+rsync -az --delete --exclude __pycache__ --exclude .DS_Store "${INCLUDES[@]}" --exclude "*" -e "$SSH" ./ "$HOST:$APP/"
+
+# Sisa kiriman versi lama yang sekarang di luar daftar putih (tidak dihapus rsync karena dikecualikan).
+OLD_EXTRAS=".agents .augment .claude .cline .codebuddy .codewhale .codex .continue .cursor .factory .gemini .github .hermes .kilocode .kiro .opencode .qoder .roo .trae .warp .windsurf AGENTS.md CLAUDE.md DESIGN.md README.md deploy.sh tailwind.config.js tests _backup"
 
 $SSH -t "$HOST" "set -e; cd $APP
+rm -rf $OLD_EXTRAS
 [ -d .venv ] || python3 -m venv .venv
 .venv/bin/pip install -q -r requirements.txt
 sudo systemctl restart pantau
 sleep 3
 systemctl is-active pantau
-curl -fsS -o /dev/null -w 'HTTP %{http_code}\n' http://127.0.0.1:8000/"
+curl -fsS -o /dev/null -w 'HTTP %{http_code}\n' http://127.0.0.1:8000/
+pid=\$(systemctl show -p MainPID --value pantau)
+for v in PANTAU_ADMIN_PASSWORD PANTAU_KARYAWAN_PASSWORD PANTAU_SECRET_KEY; do
+  sudo grep -qz \"^\$v=\" /proc/\$pid/environ || echo \"PERINGATAN: \$v belum di-set di service pantau; login web akan ditolak (lihat README).\"
+done"

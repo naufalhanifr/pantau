@@ -1,6 +1,4 @@
-// Utilitas format angka/teks untuk web admin.
-const MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-
+// Utilitas format angka untuk web admin. MONTHS dan escapeHtml ada di /shared/common.js.
 function formatNumber(value) {
     return (Number(value) || 0).toLocaleString("id-ID");
 }
@@ -21,8 +19,4 @@ function parseAmount(value) {
     } else text = text.replace(/[.,]/g, "");
     const number = Number(text);
     return Number.isFinite(number) ? Math.round(number) : 0;
-}
-
-function escapeHtml(value) {
-    return String(value ?? "").replace(/[&<>"']/g, ch => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"}[ch]));
 }

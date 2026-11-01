@@ -1,5 +1,7 @@
 /* Komponen tabel PANTAU dan ikon urut kolom.
-   Markup: <div class="pantau-table-scroll"><table class="pantau-table">...</table></div>; min-width tabel diatur pemakainya. */
+   Markup: <div class="pantau-table-scroll"><table class="pantau-table min-w-[...]"><colgroup><col class="w-[120px]">…<col></colgroup>...</table></div>
+   Lebar kolom wajib tetap lewat <colgroup>, bukan dari isi data, agar tidak berubah antar halaman pagination.
+   Maksimal satu <col> tanpa lebar (kolom nama) untuk mengisi sisa ruang; min-width tabel >= jumlah lebar kolom + ruang kolom itu. */
 
 /* Wrapper scroll horizontal, bersudut persegi. */
 .pantau-table-scroll {
@@ -11,6 +13,7 @@
 
 .pantau-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   text-align: left;
   border-radius: 0 !important;
@@ -59,6 +62,7 @@
 }
 
 .pantau-table tbody td {
+  white-space: nowrap;
   padding: 12px !important;
   font-family: inherit !important;
   font-size: 14px !important;
@@ -66,6 +70,18 @@
   border-radius: 0 !important;
   font-weight: 400;
   color: #334155;
+}
+
+/* Isi panjang tetap 1 baris dan dipotong "..."; teks lengkap jadi tooltip (table.js).
+   Sel berisi tombol/link/badge dan baris pesan (colspan) tidak dipotong. */
+.pantau-table tbody td:not([colspan]):not(:has(button, a, .pantau-badge)) {
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pantau-table tbody td[colspan] {
+  white-space: normal;
 }
 
 .pantau-table th,
@@ -90,11 +106,11 @@
 }
 
 .pantau-table tbody td:nth-child(5) {
-  color: #059669 !important;
+  color: #047857 !important;
 }
 
 .pantau-table tbody td:nth-child(6) {
-  color: #f43f5e !important;
+  color: #e11d48 !important;
 }
 
 /* Ikon sort-range khusus header tabel Data Badan Usaha */
@@ -104,7 +120,7 @@
   justify-content: center;
   width: 14px;
   height: 18px;
-  color: #94a3b8;
+  color: #64748b;
   transition: background .15s,color .15s;
   flex-shrink: 0;
   pointer-events: none;
@@ -112,6 +128,11 @@
 
 th.column-sortable {
   cursor: pointer;
+}
+
+th.column-sortable:focus-visible {
+  outline: 2px solid #059669;
+  outline-offset: -2px;
 }
 
 th.column-sortable:hover .column-sort-btn {

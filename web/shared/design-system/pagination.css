@@ -4,12 +4,14 @@
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
+  /* 32px dengan mouse; di layar sentuh 44px (base.css). */
   min-width: 32px !important;
-  min-height: 32px !important;
+  height: 32px !important;
+  padding: 0 6px !important;
   opacity: 1 !important;
 }
 
 .pantau-page-btn:focus-visible {
-  outline: 2px solid #10b981;
+  outline: 2px solid #059669;
   outline-offset: 2px;
 }

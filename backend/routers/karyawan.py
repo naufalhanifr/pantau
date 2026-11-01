@@ -36,7 +36,8 @@ def meta(bulan: str = ""):
         months = karyawan.available_months(conn)
         if bulan not in {m["bulan"] for m in months}:
             bulan = months[-1]["bulan"] if months else ""
-        return {"months": months, "bulan": bulan, "businesses": karyawan.business_names(conn, bulan)}
+        return {"months": months, "bulan": bulan, "businesses": karyawan.business_names(conn, bulan),
+                "summary": karyawan.pay_summary(conn, bulan)}
     finally:
         conn.close()
 

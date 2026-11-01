@@ -14,6 +14,7 @@ const employeeCurrency = new Intl.NumberFormat("id-ID", {style:"currency", curre
 const employeeDate = iso => iso ? iso.split("-").reverse().join("/") : "-";
 // Status bayar bulan tagih terpilih (dihitung server) -> badge design system.
 const EMPLOYEE_PAY_STATUS = { lunas: ["Lunas", "pantau-badge-success"], nyicil: ["Nyicil", "pantau-badge-warning"], belum: ["Belum Bayar", ""] };
+const EMPLOYEE_SUMMARY_CARDS = { lunas: "employeeCardLunas", nyicil: "employeeCardNyicil", belum: "employeeCardBelum" };
 const employeePayBadge = status => { const [label, tone] = EMPLOYEE_PAY_STATUS[status]; return `<span class="pantau-badge ${tone}">${label}</span>`; };
 // Pembayaran tanpa tanggal tetap ditampilkan nominalnya (sama dengan aturan simpan di server).
 const employeePaid = r => r.tanggal_bayar || r.jumlah_bayar ? employeeCurrency.format(r.jumlah_bayar) : "-";
@@ -40,9 +41,12 @@ function clearEmployeeData() {
     business.value = business.dataset.selectedBusiness = "";
     document.getElementById("employeeSearchInput").value = "";
     document.getElementById("employeeMonthFilter").innerHTML = "";
-    ["employeeTableBody", "employeeBusinessDropdown", "employeePaginationControls", "employeeDetailInfo", "employeeDetailHistory"]
+    ["employeeBusinessDropdown", "employeePaginationControls", "employeeDetailInfo", "employeeDetailHistory"]
         .forEach(id => { document.getElementById(id).innerHTML = ""; });
-    ["employeeCountLabel", "employeePaginationInfo", "employeePeriodLabel"].forEach(id => { document.getElementById(id).textContent = ""; });
+    // Login berikutnya mulai dengan status memuat, bukan tabel kosong.
+    document.getElementById("employeeTableBody").innerHTML = '<tr><td colspan="11" class="pantau-empty-state">Memuat data...</td></tr>';
+    ["employeeCountLabel", "employeePaginationInfo", "employeePeriodLabel", ...Object.values(EMPLOYEE_SUMMARY_CARDS)].forEach(id => { document.getElementById(id).textContent = ""; });
+    document.querySelectorAll(".employee-summary-period").forEach(el => { el.textContent = ""; });
     document.getElementById("employeeDetailDialog").close();
 }
 function showEmployeeError(error) {
@@ -68,7 +72,9 @@ async function loadEmployeeMeta() {
     select.innerHTML = meta.months.map(m => `<option value="${escapeHtml(m.bulan)}">${escapeHtml(m.bulan)}</option>`).join("");
     select.value = meta.bulan;
     document.getElementById("employeePeriodLabel").textContent = meta.bulan;
+    document.querySelectorAll(".employee-summary-period").forEach(el => { el.textContent = meta.bulan; });
     employeeBusinessNames = meta.businesses;
+    Object.entries(EMPLOYEE_SUMMARY_CARDS).forEach(([status, id]) => { document.getElementById(id).textContent = meta.summary[status].toLocaleString("id-ID"); });
     employeeCurrentPage = 1;
     loadEmployees();
 }
@@ -179,9 +185,9 @@ function renderEmployeeTable(total) {
         <td class="text-right">${employeeCurrency.format(r.nominal_tagihan)}</td>
         <td class="text-right">${employeePaid(r)}</td><td>${employeeDate(r.tanggal_bayar)}</td>
         <td>${employeePayBadge(r.status_bayar)}</td>
-        <td class="text-center"><button type="button" class="inline-flex items-center justify-center gap-2 border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition" onclick="openEmployeeDetail(${i})"><i class="fa-regular fa-eye"></i><span>Detail</span></button></td></tr>`).join("") :
-        `<tr><td colspan="11" class="pantau-empty-state">Tidak ada data yang cocok.</td></tr>`;
-    document.getElementById("employeePaginationInfo").textContent = total ? `Menampilkan ${start+1}–${start+employeeRows.length} dari ${total.toLocaleString("id-ID")} data` : "Tidak ada data";
+        <td class="text-center"><button type="button" class="inline-flex min-h-[44px] items-center justify-center gap-2 border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition" onclick="openEmployeeDetail(${i})"><i class="fa-regular fa-eye"></i><span>Detail</span></button></td></tr>`).join("") :
+        `<tr><td colspan="11" class="pantau-empty-state">Tidak ada data karyawan yang cocok. Ubah pencarian atau filter.</td></tr>`;
+    document.getElementById("employeePaginationInfo").textContent = total ? `Menampilkan ${start+1}-${start+employeeRows.length} dari ${total.toLocaleString("id-ID")} data` : "Tidak ada data";
     document.getElementById("employeeCountLabel").textContent = `${total.toLocaleString("id-ID")} data karyawan ditemukan`;
     document.getElementById("employeePaginationControls").innerHTML = pantauPagination(employeeCurrentPage, pages, page => `goEmployeePage(${page})`);
 }
@@ -218,5 +224,5 @@ async function openEmployeeDetail(index) {
         ? `<tr><td colspan="5" class="pantau-empty-state">Gagal memuat riwayat: ${escapeHtml(data.error.message)}</td></tr>`
         : data.rows.map(h => `<tr><td>${escapeHtml(h.bulan)}</td><td class="text-center">${Number(h.bulan_menunggak).toLocaleString("id-ID")}</td>
             <td class="text-right">${employeeCurrency.format(h.nominal_tagihan)}</td><td>${employeeDate(h.tanggal_bayar)}</td>
-            <td class="text-right">${employeePaid(h)}</td></tr>`).join("");
+            <td class="text-right">${employeePaid(h)}</td></tr>`).join("") || '<tr><td colspan="5" class="pantau-empty-state">Belum ada riwayat sampai bulan ini.</td></tr>';
 }

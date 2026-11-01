@@ -1,4 +1,4 @@
-<!-- DETAIL BADAN USAHA: komponen design system pantau-detail-modal (detail-modal.css/.js). -->
+<!-- Detail badan usaha: komponen design system pantau-detail-modal (detail-modal.css/.js). -->
 <dialog aria-labelledby="businessDetailTitle" class="pantau-detail-modal" id="businessDetailModal">
 <div class="pantau-detail-modal-header">
 <div class="pantau-detail-modal-heading">
@@ -10,7 +10,7 @@
 <div class="pantau-detail-modal-body">
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" id="businessDetailSummary">
 <div class="summary-card pantau-card transition relative overflow-hidden min-w-0">
-<div class="flex items-center gap-2 min-h-8"><div class="w-8 h-8 shrink-0 bg-indigo-600 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-wallet"></i></div><p class="text-sm font-semibold uppercase tracking-wide text-slate-500">Total Tagihan</p></div>
+<div class="flex items-center gap-2 min-h-8"><div class="w-8 h-8 shrink-0 bg-indigo-600 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-wallet"></i></div><p class="text-sm font-semibold uppercase tracking-wide text-slate-500">Tagihan</p></div>
 <p class="mt-5 text-xl lg:text-2xl font-extrabold text-slate-900" id="businessDetailTagihan">Rp0</p>
 </div>
 <div class="summary-card pantau-card transition relative overflow-hidden min-w-0">
@@ -28,9 +28,9 @@
 <p id="businessDetailPeriod">Periode -</p>
 </div>
 <div id="businessDetailTableScroll" class="pantau-table-scroll">
-<table class="pantau-table min-w-[520px]">
-<thead><tr><th class="text-slate-500">Periode</th><th class="text-right text-indigo-600">Tagihan</th><th class="text-right text-emerald-600">Pembayaran</th><th class="text-right text-rose-600">Sisa Tagihan</th></tr></thead>
-<tbody id="businessDetailHistory"><tr><td class="px-3 py-8 text-center text-slate-400" colspan="4">Pilih badan usaha untuk melihat riwayat.</td></tr></tbody>
+<table class="pantau-table min-w-[640px]"><colgroup><col><col class="w-[160px]"><col class="w-[160px]"><col class="w-[160px]"></colgroup>
+<thead><tr><th class="text-slate-500">Periode</th><th class="text-right text-indigo-600">Tagihan</th><th class="text-right text-emerald-700">Pembayaran</th><th class="text-right text-rose-600">Sisa Tagihan</th></tr></thead>
+<tbody id="businessDetailHistory"><tr><td class="px-3 py-8 text-center text-slate-500" colspan="4">Pilih badan usaha untuk melihat riwayat.</td></tr></tbody>
 </table>
 </div>
 </section>

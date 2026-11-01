@@ -38,7 +38,7 @@ ADMIN_LABELS = {
     "periode": "Bulan Tagih", "kode_bu": "Kode BU", "nama_bu": "Nama BU", "noka_peserta": "Noka Peserta",
     "nama_peserta": "Nama Peserta", "noka_keluarga": "Noka Peserta/Keluarga", "nama_keluarga": "Nama Peserta/Keluarga",
     "status": "Pisapst", "bulan_menunggak": "Bulan Menunggak", "nominal_tagihan": "Sisa Tagihan Aktif",
-    "tanggal_bayar": "Tanggal Bayar (dd/mm/yyyy)", "jumlah_bayar": "Jumlah Bayar (0 = belum bayar)",
+    "tanggal_bayar": "Tanggal Bayar (dd/mm/yyyy)", "jumlah_bayar": "Jumlah Bayar (0 + tanggal kosong = belum bayar)",
 }
 KARYAWAN_FIELDS = ROW_FIELDS[:11]
 SEARCH_COLUMNS = ("nama_bu", "kode_bu", "nama_peserta", "nama_keluarga", "noka_peserta", "noka_keluarga")
@@ -124,8 +124,11 @@ def read_workbook(path: Any) -> list[tuple]:
 def _insert(conn: sqlite3.Connection, rows: list[tuple]) -> None:
     """Baris (ROW_FIELDS) ditulis ulang utuh: data karyawan, lalu pembayaran bulan itu.
     Pembayaran ada jika ada Tanggal Bayar atau Jumlah Bayar > 0 (grid admin mengubah sel kosong jadi 0)."""
+    # ON CONFLICT DO UPDATE, bukan INSERT OR REPLACE: rowid tetap, jadi baris yang diedit tidak pindah ke akhir urutan file.
+    updates = ", ".join(f"{field} = excluded.{field}" for field in KARYAWAN_FIELDS if field not in ("bulan", "noka_keluarga"))
     conn.executemany(
-        f"INSERT OR REPLACE INTO karyawan ({', '.join(KARYAWAN_FIELDS)}) VALUES ({', '.join('?' * len(KARYAWAN_FIELDS))})",
+        f"INSERT INTO karyawan ({', '.join(KARYAWAN_FIELDS)}) VALUES ({', '.join('?' * len(KARYAWAN_FIELDS))}) "
+        f"ON CONFLICT(bulan, noka_keluarga) DO UPDATE SET {updates}",
         [row[:11] for row in rows],
     )
     conn.executemany("DELETE FROM karyawan_pembayaran WHERE bulan = ? AND noka_keluarga = ?", [(row[0], row[6]) for row in rows])
@@ -156,7 +159,7 @@ def import_rows(conn: sqlite3.Connection, rows: list[tuple], source: str) -> dic
     return {"months": months, "written": len(rows), "deleted": deleted}
 
 
-# ---------- Web admin: upload per bulan, workspace, template ----------
+# Web admin: upload per bulan, workspace, template.
 
 def admin_sheets(rows: list[tuple], bulan: str = "") -> list[dict[str, Any]]:
     """Hasil read_workbook dalam bentuk parse_workbook (satu sheet per bulan tagih) untuk ditinjau di admin."""
@@ -288,6 +291,14 @@ SORT_COLUMNS = {
 STATUS_BAYAR = ("lunas", "nyicil", "belum")
 STATUS_BAYAR_SQL = "CASE WHEN b.noka_keluarga IS NULL THEN 2 WHEN b.jumlah_bayar >= k.nominal_tagihan THEN 0 ELSE 1 END"
 JOIN_BAYAR_BULAN = "LEFT JOIN karyawan_pembayaran b ON b.bulan = k.bulan AND b.noka_keluarga = k.noka_keluarga"
+
+
+def pay_summary(conn: sqlite3.Connection, bulan: str) -> dict[str, int]:
+    """Jumlah baris per status bayar pada bulan tagih, tanpa filter lain (kartu ringkasan Daftar Karyawan)."""
+    counts = dict(conn.execute(
+        f"SELECT {STATUS_BAYAR_SQL}, COUNT(*) FROM karyawan k {JOIN_BAYAR_BULAN} WHERE k.bulan = ? GROUP BY 1", [bulan]
+    ).fetchall())
+    return {name: counts.get(index, 0) for index, name in enumerate(STATUS_BAYAR)}
 
 
 def employee_page(

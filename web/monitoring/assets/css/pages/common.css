@@ -39,6 +39,3 @@
   line-height: 1.25rem !important;
 }
 
-#dashboardPage #dashboardMonthFilter.grid.grid-cols-2 {
-  gap: 12px !important;
-}

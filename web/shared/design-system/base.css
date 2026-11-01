@@ -16,3 +16,21 @@ select {
   background-position: right 0.65rem center !important;
   background-size: 16px 16px !important;
 }
+
+/* Kursor tangan untuk kontrol aktif, tanda dilarang untuk yang nonaktif.
+   Diawali html agar menang dari preflight Tailwind (dimuat terakhir: `:disabled { cursor: default }`). */
+html :is(a[href], button, summary, select, label[for], input[type="checkbox"], input[type="radio"], [role="button"], [role="tab"], [role="option"]):not(:disabled):not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+html :disabled,
+html [aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/* Layar sentuh: target tekan minimal 44px. Dengan mouse ukurannya tetap ringkas. */
+@media (pointer: coarse) {
+  .pantau-page-btn { min-width: 44px !important; height: 44px !important; }
+  .trend-mode-btn,
+  .pantau-password-toggle,
+  .employee-business-toggle { min-width: 44px; min-height: 44px; }
+}

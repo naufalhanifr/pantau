@@ -1,7 +1,7 @@
 /* Tema spreadsheet (Tabulator) mengikuti design system tabel PANTAU. */
 
 .admin-grid { height: 520px; }
-.admin-grid-tall { height: calc(100vh - 300px); min-height: 420px; }
+.admin-grid-tall { height: calc(100vh - 300px); height: calc(100dvh - 300px); min-height: 420px; }
 
 .admin-grid.tabulator {
   border: 1px solid var(--pantau-border);
@@ -28,12 +28,12 @@
 .admin-grid .tabulator-row.tabulator-row-even { background: #fff; }
 .admin-grid .tabulator-row:hover { background: #f8fafc; }
 .admin-grid .tabulator-row .tabulator-cell { border-right: 1px solid #f1f5f9; padding: 6px 8px; }
-.admin-grid .tabulator-row .tabulator-cell.tabulator-editing { border: 1px solid #10b981; }
+.admin-grid .tabulator-row .tabulator-cell.tabulator-editing { border: 1px solid #059669; }
 .admin-grid .tabulator-row .tabulator-cell.tabulator-editing input { font-size: 13px; }
 
 /* Kolom nomor baris & seleksi rentang seperti spreadsheet. */
 .admin-grid .tabulator-row .tabulator-cell.tabulator-row-header,
-.admin-grid .tabulator-header .tabulator-col.tabulator-row-header { background: #f8fafc; color: #94a3b8; }
+.admin-grid .tabulator-header .tabulator-col.tabulator-row-header { background: #f8fafc; color: #64748b; }
 .admin-grid .tabulator-cell.tabulator-range-selected:not(.tabulator-range-only-cell-selected):not(.tabulator-row-header) { background: #d1fae5; }
 .admin-grid .tabulator-range-overlay .tabulator-range.tabulator-range-active { border-color: #059669; }
 .admin-grid .tabulator-range-overlay .tabulator-range-cell-active { border-color: #059669; }

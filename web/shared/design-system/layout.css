@@ -19,14 +19,14 @@
   }
 }
 
-/* Satu halaman/menu: blok konten langsungnya (notice, card) berjarak 20px. Jangan beri margin atas/bawah pada blok itu. */
+/* Satu halaman/menu: blok konten langsungnya (notice, card) berjarak 16px. Jangan beri margin atas/bawah pada blok itu. */
 .pantau-page:not(.hidden) {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
-/* Blok judul + deskripsi halaman: 32px ke blok konten pertama (gap 20px + 12px). */
+/* Blok judul + deskripsi halaman: 24px ke blok konten pertama (gap 16px + 8px). */
 .pantau-page > .pantau-page-head {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }

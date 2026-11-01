@@ -12,7 +12,7 @@ function dashboardPeriod() {
     const f = selectedFilters("dashboard");
     const end = Number(f.month), year = Number(f.year);
     const start = Math.min(Number(f.startMonth) || end, end);
-    const label = start === end ? `${DEMO_MONTHS[end - 1]} ${year}` : `${DEMO_MONTHS[start - 1]} sd ${DEMO_MONTHS[end - 1]} ${year}`;
+    const label = start === end ? `${MONTHS[end - 1]} ${year}` : `${MONTHS[start - 1]} sd ${MONTHS[end - 1]} ${year}`;
     return { start, end, year, label };
 }
 
@@ -21,7 +21,7 @@ function updateDashboardPeriodLabels() {
     setText("pagePeriodLabel", label);
     setText("topTagihanPeriodDescription", `Nilai nominal tagihan tertinggi ${label}`);
     setText("topBayarPeriodDescription", `Nilai nominal pembayaran tertinggi ${label}`);
-    setText("labelPeriodeTagihan", `${DEMO_MONTHS[end - 1]} ${year}`);
+    setText("labelPeriodeTagihan", `${MONTHS[end - 1]} ${year}`);
     setText("labelPeriodeBayar", label);
     setText("labelPeriodeSisa", label);
     return label;
@@ -75,10 +75,10 @@ function renderTopTable(type) {
     document.getElementById(`${id}Body`).innerHTML = visible.length
         ? visible.map((item, i) => `<tr class="transition"><td>${from + i + 1}</td><td>${escapeHtml(item.kode_bu || "-")}</td><td>${escapeHtml(item.nama_bu || "-")}</td>
             <td class="text-right">${formatRupiah(item.tagihan)}</td><td class="text-right">${formatRupiah(item.bayar)}</td><td class="text-right">${formatRupiah(Number(item.sisa || 0))}</td></tr>`).join("")
-        : '<tr><td colspan="6" class="pantau-empty-state">Tidak ada data yang cocok.</td></tr>';
+        : '<tr><td colspan="6" class="pantau-empty-state">Tidak ada badan usaha pada periode ini. Ubah rentang bulan untuk melihat data lain.</td></tr>';
     const pages = Math.max(1, Math.ceil(rows.length / TOP_TABLE_PAGE_SIZE));
     // Footer tetap tampil (info + halaman 1) walau hasil filter kosong.
     document.getElementById(`${id}Pagination`).innerHTML =
-        `<div class="text-xs text-slate-500">${rows.length ? `Menampilkan ${from + 1}–${from + visible.length} dari ${rows.length} data` : "Menampilkan 0 dari 0 data"}</div>` +
+        `<div class="text-xs text-slate-500">${rows.length ? `Menampilkan ${from + 1}-${from + visible.length} dari ${rows.length} data` : "Menampilkan 0 dari 0 data"}</div>` +
         `<div class="flex items-center gap-1.5">${pantauPagination(page, pages, n => `goTopTablePage('${type}', ${n})`, { edges: false })}</div>`;
 }

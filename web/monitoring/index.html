@@ -7,12 +7,9 @@
 <title>
    PANTAU | Pemantauan Pembayaran Iuran
   </title>
-<script src="https://cdn.tailwindcss.com/3.4.17"></script>
-<script src="/assets/js/tailwind.config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.6.1/dist/chart.umd.min.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
 
-<!-- Design system -->
 <link href="/shared/design-system/base.css" rel="stylesheet"/>
 <link href="/shared/design-system/layout.css" rel="stylesheet"/>
 <link href="/shared/design-system/app-shell.css" rel="stylesheet"/>
@@ -28,13 +25,13 @@
 <link href="/shared/design-system/confirm-dialog.css" rel="stylesheet"/>
 <link href="/shared/design-system/detail-modal.css" rel="stylesheet"/>
 <link href="/shared/design-system/badge.css" rel="stylesheet"/>
-<!-- Layout -->
-<!-- Menu -->
 <link href="/assets/css/pages/common.css" rel="stylesheet"/>
 <link href="/assets/css/pages/dashboard.css" rel="stylesheet"/>
 <link href="/assets/css/pages/badan-usaha.css" rel="stylesheet"/>
 <link href="/assets/css/pages/business-detail.css" rel="stylesheet"/>
 <link href="/assets/css/pages/karyawan.css" rel="stylesheet"/>
+<!-- Tailwind statis, terakhir agar urutan cascade sama dengan CDN lama: build ulang lihat tailwind.config.js di root -->
+<link href="/shared/tailwind.css" rel="stylesheet"/>
 </head>
 <body class="pantau-app bg-slate-50 text-slate-800 font-sans antialiased">
 <!-- @include partials/header.html -->
@@ -49,7 +46,7 @@
 <!-- @include partials/business-detail-modal.html -->
 <!-- @include partials/footer.html -->
 
-<!-- Data & inti -->
+<script src="/shared/common.js"></script>
 <script src="/shared/design-system/scroll-top.js"></script>
 <script src="/shared/design-system/confirm-dialog.js"></script>
 <script src="/shared/design-system/detail-modal.js"></script>
@@ -61,8 +58,8 @@
 <script src="/assets/js/core/data.js"></script>
 <script src="/assets/js/core/period-filter.js"></script>
 <script src="/shared/design-system/app-shell.js"></script>
+<script src="/shared/design-system/table.js"></script>
 <script src="/assets/js/layout/navigation.js"></script>
-<!-- Menu -->
 <script src="/assets/js/pages/dashboard.js"></script>
 <script src="/assets/js/pages/dashboard-trend.js"></script>
 <script src="/assets/js/pages/badan-usaha.js"></script>
@@ -70,9 +67,6 @@
 <script src="/shared/design-system/dropdown-list.js"></script>
 <script src="/assets/js/pages/karyawan.js"></script>
 <script src="/assets/js/main.js"></script>
-<!-- Komponen design system -->
-<script src="/assets/js/components/empty-state.js"></script>
 <script src="/shared/design-system/select-menu.js"></script>
-<script src="/shared/design-system/dropdown-scroll-indicator.js"></script>
 </body>
 </html>

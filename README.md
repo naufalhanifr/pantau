@@ -17,6 +17,8 @@ export PANTAU_SECRET_KEY='string-acak-panjang'     # untuk token sesi admin
 |---|---|---|
 | `PANTAU_ADMIN_PASSWORD` | `admin-pantau` | Kata sandi web admin |
 | `PANTAU_KARYAWAN_PASSWORD` | `PantauBPJs` | Kata sandi menu Daftar Karyawan (dicek server) |
+
+Kata sandi bawaan hanya untuk uji lokal: diterima jika dibuka langsung di komputer server (`localhost`), ditolak dari IP lain atau lewat nginx. Di server, isi kedua variabel kata sandi.
 | `PANTAU_SECRET_KEY` | acak tiap start | Kunci tanda tangan token admin & karyawan. Tanpa env, semua sesi berakhir saat server restart |
 | `PANTAU_DB` | `Data/pantau.db` | Lokasi database SQLite |
 | `PANTAU_TOKEN_TTL` | `28800` | Masa berlaku sesi admin (detik) |
@@ -28,6 +30,22 @@ export PANTAU_SECRET_KEY='string-acak-panjang'     # untuk token sesi admin
 - Keluar otomatis setelah 30 menit tanpa aktivitas atau saat koneksi terputus. Token dari server juga hanya berlaku 30 menit dan diperpanjang selama pengguna aktif.
 - Respons `/api/*` memakai `Cache-Control: no-store`; semua respons memakai header `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`.
 - Jalankan di balik HTTPS. Hitungan gagal login disimpan di memori satu proses: jalankan uvicorn satu worker (seperti `run.sh`).
+- `nginx-admin.conf` tidak ikut `deploy.sh`. Setelah mengubahnya, salin ke server (`/etc/nginx/sites-available/pantau-admin`) lalu `sudo nginx -t && sudo systemctl reload nginx`.
+- nginx domain utama wajib meneruskan IP pengunjung: `proxy_set_header Host $host;` dan `proxy_set_header X-Forwarded-For $remote_addr;`.
+
+## Deploy
+
+`./deploy.sh` hanya mengirim yang dipakai aplikasi: `backend/`, `web/`, `requirements.txt`, `run.sh`. Folder alat bantu/agent AI (`.claude`, `.cursor`, dan sejenisnya), test, dan file dokumentasi tidak ikut, dan sisa kiriman lama di server dihapus. Setelah restart, skrip memberi peringatan bila `PANTAU_ADMIN_PASSWORD`, `PANTAU_KARYAWAN_PASSWORD`, atau `PANTAU_SECRET_KEY` belum di-set di service.
+
+`./deploy.sh --with-data` juga menimpa `Data/` server dengan `Data/` lokal; database server dibackup dulu ke `~/pantau-backup/` di server.
+
+## Pergantian tahun
+
+Database menyimpan nama bulan tanpa tahun, jadi satu `pantau.db` = satu tahun. Upload "Januari" tahun baru dengan opsi ganti akan menghapus Januari tahun lalu. Sebelum upload pertama tahun baru:
+
+1. Di server, arsipkan database: `cp Data/pantau.db Data/pantau-2026.db`, lalu hapus `Data/pantau.db` (dibuat ulang kosong saat restart).
+2. Ubah `PANTAU_YEAR` di `web/monitoring/assets/js/core/data.js` ke tahun baru, lalu deploy.
+3. Data lama tetap bisa dilihat dengan instance kedua: `PANTAU_DB=Data/pantau-2026.db PORT=8001 ./run.sh`.
 
 ## Struktur
 
@@ -54,8 +72,10 @@ web/shared/design-system/    komponen CSS bersama (monitoring + admin)
   app-shell.css/.js          header (jam WIB), sidebar (bisa diciutkan, grup menu opsional), footer: pantau-header / pantau-sidebar / pantau-footer
   layout.css  card.css       padding area konten (pantau-content), jarak antar blok (pantau-page, pantau-page-head), card (pantau-card)
   search-bar.css             searchbar: pantau-search
-  dropdown-list.css/.js      list opsi dropdown (pantau-dropdown-list); pantauPlaceDropdown() memilih muncul di bawah/atas
-  dropdown-scroll-indicator.js   indikator scroll list dropdown
+  dropdown-list.css/.js      list opsi dropdown (pantau-dropdown-list, scrollbar selalu terlihat); pantauPlaceDropdown() memilih muncul di bawah/atas
+web/shared/common.js         MONTHS dan escapeHtml (monitoring + admin)
+web/shared/tailwind.css      CSS Tailwind hasil build (tailwind.config.js di root). Build ulang setelah menambah class:
+                             npx -y tailwindcss@3.4.17 -o web/shared/tailwind.css --minify
 
 web/monitoring/
   index.html                 kerangka halaman (head + include + urutan script)
@@ -65,7 +85,6 @@ web/monitoring/
   assets/js/core/            api, utils, state, data, period-filter
   assets/js/layout/          navigation (pindah menu)
   assets/js/pages/           dashboard, dashboard-trend, badan-usaha, business-detail, karyawan(-auth)
-  assets/js/components/      empty-state
 
 web/admin/
   index.html  partials/  pages/ (upload, workspace, riwayat; isinya mengikuti menu jenis aktif)
@@ -96,7 +115,7 @@ Di `pantau.db` disimpan sebagai:
 - `karyawan_pembayaran`: riwayat pembayaran, satu baris per peserta/keluarga per bulan yang ada pembayarannya.
   Menu Daftar Karyawan menampilkan pembayaran terakhir sampai bulan tagih yang dipilih.
 
-Diisi lewat web admin menu **Karyawan** (Upload Excel per bulan atau setahun, Workspace, Riwayat) atau dari terminal:
+Diisi lewat web admin menu **Karyawan** (Upload Excel per bulan, Workspace, Riwayat) atau, untuk file setahun, dari terminal:
 
 ```bash
 .venv/bin/python -m backend.services.karyawan Data/Karyawan.xlsx   # ±5 detik; bulan yang ada di file diganti

@@ -20,9 +20,11 @@ const WS_KARYAWAN = {
         { title: "Kode BU", field: "kode_bu", width: 110 },
         { title: "Nama BU", field: "nama_bu", minWidth: 220 },
         numberColumn("Bulan Menunggak", "bulan_menunggak", { width: 140 }),
-        numberColumn("Jumlah Bayar (0 = belum bayar)", "jumlah_bayar", { width: 200 }),
+        numberColumn("Jumlah Bayar (0 + tanggal kosong = belum bayar)", "jumlah_bayar", { width: 280 }),
         { title: "Tanggal Bayar (dd/mm/yyyy)", field: "tanggal_bayar", width: 170 },
         numberColumn("Sisa Tagihan Aktif", "nominal_tagihan", { width: 160 }),
+        // Ikut dikirim saat simpan; tanpa kolom ini server mengganti "Januari 2026" menjadi "Januari".
+        { title: "Bulan Tagih", field: "periode", width: 140 },
     ],
 };
 

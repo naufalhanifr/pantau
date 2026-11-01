@@ -1,3 +1,4 @@
+import logging
 from io import BytesIO
 from typing import Any, Literal
 
@@ -14,6 +15,7 @@ from ..templating import render_page
 
 router = APIRouter()
 api = APIRouter(prefix="/api/admin", dependencies=[Depends(require_admin)])
+log = logging.getLogger("pantau.admin")
 
 
 class LoginBody(BaseModel):
@@ -68,8 +70,12 @@ def upload(file: UploadFile = File(...), jenis: str = "", bulan: str = ""):
     # Sengaja sync: parsing Excel berat CPU dan akan membekukan event loop (semua pengguna) jika async.
     if not (file.filename or "").lower().endswith((".xlsx", ".xlsm")):
         raise HTTPException(status_code=422, detail="Format file harus .xlsx atau .xlsm.")
-    content = file.file.read()
-    if len(content) > MAX_UPLOAD_BYTES:
+    if jenis == "karyawan" and bulan not in MONTHS:
+        # File setahun ±26 MB JSON ke browser: Karyawan hanya lewat tombol Upload per bulan.
+        raise HTTPException(status_code=422, detail="Upload Karyawan per bulan: pilih tombol Upload pada bulan yang dituju.")
+    # Cek ukuran dulu (sudah diketahui dari multipart) supaya file raksasa tidak dimuat ke memori.
+    content = b"" if (file.size or 0) > MAX_UPLOAD_BYTES else file.file.read()
+    if (file.size or len(content)) > MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail=f"Ukuran file melebihi {MAX_UPLOAD_BYTES // 1024 // 1024} MB.")
     try:
         if jenis == "karyawan":
@@ -77,8 +83,9 @@ def upload(file: UploadFile = File(...), jenis: str = "", bulan: str = ""):
             sheets = karyawan.admin_sheets(karyawan.read_workbook(BytesIO(content)), bulan)
         else:
             sheets = parse_workbook(content, file.filename or "")
-    except Exception as exc:
-        raise HTTPException(status_code=422, detail=f"File Excel tidak dapat dibaca: {exc}")
+    except Exception:
+        log.exception("Gagal membaca Excel %r (jenis=%s, bulan=%s)", file.filename, jenis, bulan)
+        raise HTTPException(status_code=422, detail="File Excel tidak dapat dibaca. Pastikan file .xlsx/.xlsm asli, tidak rusak, dan tidak dikunci kata sandi.")
     if not sheets:
         detail = f"Tidak ada data bulan tagih {bulan} di file." if jenis == "karyawan" and bulan else "Tidak ada sheet berisi data."
         raise HTTPException(status_code=422, detail=detail)

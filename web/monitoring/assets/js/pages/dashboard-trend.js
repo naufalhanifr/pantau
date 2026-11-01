@@ -1,16 +1,16 @@
 // Dashboard: grafik tren sisa tagihan, tagihan, dan pembayaran.
-const TREND_EMPTY_TEXT = "Tidak ada data yang cocok.";
+const TREND_EMPTY_TEXT = "Belum ada data pada rentang bulan ini.";
 let trendHasData = false;
 
 // Bulan pada grafik: rentang filter, dibatasi bulan terakhir yang tersedia di database.
 function trendRange() {
     const f = selectedFilters("dashboard");
     const year = Number(f.year);
-    const selectedMonth = Math.min(12, Math.max(1, Number(f.month) || 9));
+    const selectedMonth = Math.min(12, Math.max(1, Number(f.month) || PANTAU_LATEST_MONTH || 12));
     const start = Math.min(selectedMonth, Math.max(1, Number(f.startMonth) || selectedMonth));
-    const latestAvailableMonth = year === 2026 ? 9 : 0;
+    const latestAvailableMonth = year === PANTAU_YEAR ? PANTAU_LATEST_MONTH : 0;
     const end = Math.min(selectedMonth, latestAvailableMonth);
-    return { year, search: f.search, selectedMonth, latestAvailableMonth, start, end, months: end >= start ? DEMO_MONTHS.slice(start - 1, end) : [] };
+    return { year, search: f.search, selectedMonth, latestAvailableMonth, start, end, months: end >= start ? MONTHS.slice(start - 1, end) : [] };
 }
 
 function syncTrendModeDisabledState(hasData) {
@@ -48,10 +48,10 @@ function renderTrendChart() {
     trendHasData = totals.some(t => t.tagihan !== null);
     syncTrendModeDisabledState(trendHasData);
 
-    setText("trendPeriodLabel", !months.length ? TREND_EMPTY_TEXT : start === end ? `${DEMO_MONTHS[end - 1]} ${year}` : `${DEMO_MONTHS[start - 1]} sd ${DEMO_MONTHS[end - 1]} ${year}`);
+    setText("trendPeriodLabel", !months.length ? TREND_EMPTY_TEXT : start === end ? `${MONTHS[end - 1]} ${year}` : `${MONTHS[start - 1]} sd ${MONTHS[end - 1]} ${year}`);
     const notice = document.getElementById("trendDataNotice");
     if (notice) {
-        notice.innerText = !trendHasData ? TREND_EMPTY_TEXT : selectedMonth > latestAvailableMonth ? `Data tersedia sampai ${DEMO_MONTHS[latestAvailableMonth - 1]} ${year}.` : "";
+        notice.innerText = !trendHasData ? TREND_EMPTY_TEXT : selectedMonth > latestAvailableMonth ? `Data tersedia sampai ${MONTHS[latestAvailableMonth - 1]} ${year}.` : "";
         notice.classList.toggle("hidden", !notice.innerText);
         ["text-center", "text-sm", "text-slate-500", "py-6"].forEach(cls => notice.classList.toggle(cls, !trendHasData));
     }
@@ -100,7 +100,7 @@ function renderTrendChart() {
                 ctx.restore();
             }
         }],
-        options: {responsive:true, maintainAspectRatio:false, interaction:{mode:"nearest",intersect:true}, onHover:(event,activeElements)=>{hoveredTrendDatasetIndex=activeElements.length ? activeElements[0].datasetIndex : null;}, plugins:{
+        options: {responsive:true, maintainAspectRatio:false, animation: matchMedia("(prefers-reduced-motion: reduce)").matches ? false : {}, interaction:{mode:"nearest",intersect:true}, onHover:(event,activeElements)=>{hoveredTrendDatasetIndex=activeElements.length ? activeElements[0].datasetIndex : null;}, plugins:{
             legend:{display:false},
             tooltip:{enabled:false,mode:"index",intersect:true,position:"nearest",filter:item=>trendMode==="sisa" ? (hoveredTrendDatasetIndex===2 || item.datasetIndex===hoveredTrendDatasetIndex) : true,external:context=>{
                 const {chart,tooltip}=context;
@@ -109,7 +109,7 @@ function renderTrendChart() {
                 if(!tooltip||tooltip.opacity===0){tip.style.opacity="0";return;}
                 const pts=tooltip.dataPoints||[];if(!pts.length){tip.style.opacity="0";return;}
                 // Indeks titik dihitung dari bulan awal filter, bukan dari Januari.
-                const month=DEMO_MONTHS[start-1+pts[0].dataIndex]+" "+year;
+                const month=MONTHS[start-1+pts[0].dataIndex]+" "+year;
                 const fmt=v=>v==null?"Belum ada data":formatRupiah(v);
                 const rows=pts.map(pt=>{const ds=pt.dataset;const color=ds.borderColor||ds.backgroundColor||"#111827";return `<div style="display:flex;align-items:baseline;justify-content:space-between;gap:18px;font-size:13px;line-height:1.5;"><span style="color:#111827;font-weight:650;">${ds.label}</span><span style="color:${color};font-weight:800;white-space:nowrap;">${fmt(pt.raw)}</span></div>`;}).join("");
                 tip.innerHTML=`<div style="font-size:15px;font-weight:700;letter-spacing:.01em;color:#64748b;">${month}</div><div style="height:1px;background:#e5e7eb;margin:9px 0 10px;"></div><div style="display:flex;flex-direction:column;gap:7px;">${rows}</div>`;

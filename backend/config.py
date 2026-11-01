@@ -8,10 +8,14 @@ WEB_DIR = ROOT_DIR / "web"
 
 DB_PATH = Path(os.environ.get("PANTAU_DB", DATA_DIR / "pantau.db"))
 
-# Admin web: kata sandi WAJIB diganti lewat environment variable di server.
-ADMIN_PASSWORD = os.environ.get("PANTAU_ADMIN_PASSWORD", "admin-pantau")
+# Kata sandi bawaan hanya untuk uji lokal: auth.check_login menolaknya dari luar komputer server.
+# Di server WAJIB diganti lewat environment variable.
+_DEFAULT_ADMIN_PASSWORD, _DEFAULT_KARYAWAN_PASSWORD = "admin-pantau", "PantauBPJs"
+LOCAL_ONLY_PASSWORDS = {_DEFAULT_ADMIN_PASSWORD, _DEFAULT_KARYAWAN_PASSWORD}
+# Admin web.
+ADMIN_PASSWORD = os.environ.get("PANTAU_ADMIN_PASSWORD", _DEFAULT_ADMIN_PASSWORD)
 # Menu Daftar Karyawan di web monitoring (data pribadi peserta), dicek di server.
-KARYAWAN_PASSWORD = os.environ.get("PANTAU_KARYAWAN_PASSWORD", "PantauBPJs")
+KARYAWAN_PASSWORD = os.environ.get("PANTAU_KARYAWAN_PASSWORD", _DEFAULT_KARYAWAN_PASSWORD)
 # Tanpa env, kunci acak per proses: token tidak bisa dipalsukan, tapi semua sesi berakhir saat server restart.
 SECRET_KEY = os.environ.get("PANTAU_SECRET_KEY") or secrets.token_hex(32)
 TOKEN_TTL_SECONDS = int(os.environ.get("PANTAU_TOKEN_TTL", 8 * 60 * 60))

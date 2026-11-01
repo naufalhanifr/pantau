@@ -18,7 +18,7 @@
     </div>
     <input accept=".xlsx,.xlsm" class="hidden" id="uploadMonthFile" type="file" onchange="handleUploadFile(this.files[0], uploadPendingMonth)"/>
     <div class="pantau-table-scroll">
-      <table class="pantau-table min-w-[640px]">
+      <table class="pantau-table min-w-[780px]"><colgroup><col class="w-[200px]"><col class="w-[140px]"><col><col class="w-[260px]"></colgroup>
         <thead>
           <tr>
             <th>Bulan</th>
@@ -32,7 +32,7 @@
     </div>
   </div>
 
-  <div class="pantau-card">
+  <div class="pantau-card" id="uploadBulkCard">
     <div class="admin-card-head">
       <h3>Upload Banyak Bulan Sekaligus</h3>
       <p id="uploadBulkHint"></p>

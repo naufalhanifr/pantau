@@ -1,15 +1,16 @@
 // Data PANTAU dari /api/data dan agregasi per periode.
-// Data berasal dari database PANTAU melalui API backend, bukan data dummy.
-const DEMO_MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+// Database menyimpan bulan tanpa tahun: satu database = satu tahun. Ganti tahun: lihat README "Pergantian tahun".
+const PANTAU_YEAR = 2026;
 let PANTAU_DATA = [];
 let PANTAU_READY = false;
+let PANTAU_LATEST_MONTH = 0;   // bulan terakhir yang ada datanya (1-12), dibaca dari /api/data
 
 async function initializePantauData() {
     const result = await apiGet("/api/data");
     PANTAU_DATA = Array.isArray(result.data) ? result.data : [];
     PANTAU_READY = true;
     const availableMonths = [...new Set(PANTAU_DATA.map(row => Number(row.month)))].sort((a,b) => a-b);
-    const latest = availableMonths.length ? Math.max(...availableMonths) : 0;
+    const latest = PANTAU_LATEST_MONTH = availableMonths.length ? Math.max(...availableMonths) : 0;
     ["globalStartMonth", "globalMonth", "monitorStartMonth", "monitorEndMonth"].forEach(id => {
         const select = document.getElementById(id);
         if (!select) return;
@@ -21,7 +22,7 @@ async function initializePantauData() {
 }
 
 function getDemoRows(month = Number(selectedFilters().month), year = Number(selectedFilters().year), search = selectedFilters().search) {
-    if (!PANTAU_READY || Number(year) !== 2026) return [];
+    if (!PANTAU_READY || Number(year) !== PANTAU_YEAR) return [];
     const q = String(search || "").trim().toLocaleLowerCase("id-ID");
     return PANTAU_DATA.filter(row => Number(row.month) === Number(month) &&
         (!q || String(row.nama_bu).toLocaleLowerCase("id-ID").includes(q) || String(row.kode_bu).toLowerCase().includes(q)))
@@ -32,7 +33,7 @@ function getFilteredRows(menu = activePage) {
     const f = selectedFilters(menu);
     const start = Math.min(Number(f.startMonth || f.month), Number(f.month));
     const end = Number(f.month);
-    if (!PANTAU_READY || Number(f.year) !== 2026 || !end || start > end) return [];
+    if (!PANTAU_READY || Number(f.year) !== PANTAU_YEAR || !end || start > end) return [];
 
     // Daftar BU mengikuti pencarian dan rentang filter. Tagihan dan sisa adalah posisi bulan akhir,
     // sedangkan pembayaran merupakan akumulasi dari bulan awal sampai bulan akhir.

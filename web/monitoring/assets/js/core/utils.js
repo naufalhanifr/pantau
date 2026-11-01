@@ -1,15 +1,6 @@
-// Utilitas format, escape HTML, dan notifikasi per menu.
+// Utilitas format dan notifikasi per menu. MONTHS dan escapeHtml ada di /shared/common.js.
 function formatRupiah(number) {
     return "Rp " + (Number(number) || 0).toLocaleString("id-ID");
-}
-
-function escapeHtml(value) {
-    return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
 }
 
 function dismissNotice(id) { document.getElementById(id)?.classList.add("hidden"); }

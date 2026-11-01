@@ -17,7 +17,7 @@ const SPREADSHEET_OPTIONS = {
     clipboardPasteAction: "range",
     rowHeader: { resizable: false, frozen: true, width: 52, hozAlign: "center", formatter: "rownum", editor: false, headerSort: false },
     columnDefaults: { headerSort: false, resizable: "header", editor: "input", minWidth: 90 },
-    placeholder: "Tidak ada data yang cocok.",
+    placeholder: "Belum ada baris. Upload file Excel atau klik Tambah baris.",
 };
 
 // Kolom angka: tampil format Indonesia, isi tempelan "1.234.567" otomatis jadi angka.

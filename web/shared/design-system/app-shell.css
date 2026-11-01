@@ -21,7 +21,6 @@
   min-height: 100vh;
 }
 
-/* ---------- Header ---------- */
 .pantau-header {
   position: sticky;
   top: 0;
@@ -146,7 +145,6 @@
   .pantau-clock-time { font-size: 14px; line-height: 20px; letter-spacing: 0; }
 }
 
-/* ---------- Sidebar ---------- */
 .pantau-sidebar {
   position: fixed;
   top: var(--pantau-header-height, 73px);
@@ -169,7 +167,7 @@
   align-items: center;
   gap: 12px;
   width: calc(100% - 24px);
-  height: 36px;
+  height: 44px;
   margin: 16px 12px 12px;
   padding: 0 12px;
   flex-shrink: 0;
@@ -195,7 +193,7 @@
   align-items: center;
   gap: 12px;
   width: 100%;
-  min-height: 42px;
+  min-height: 44px;
   padding: 10px 12px;
   color: #475569;
   font-size: 14px;
@@ -267,7 +265,6 @@
   padding-right: 0;
 }
 
-/* ---------- Area utama ---------- */
 .pantau-shell {
   flex: 1 0 auto;
 }
@@ -292,7 +289,6 @@
   }
 }
 
-/* ---------- Footer ---------- */
 .pantau-footer {
   position: relative;
   z-index: 41;
