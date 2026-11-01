@@ -8,3 +8,30 @@ Data/*.xlsx
 # Rahasia lokal & server: jangan pernah di-commit
 .env
 server.env
+
+# Instalasi skill untuk agen lain (alat bantu, bukan kode PANTAU)
+/.agents/
+/.augment/
+/.cline/
+/.codebuddy/
+/.codewhale/
+/.codex/
+/.continue/
+/.cursor/
+/.factory/
+/.gemini/
+/.github/prompts/
+/.hermes/
+/.kilocode/
+/.kiro/
+/.opencode/
+/.qoder/
+/.roo/
+/.trae/
+/.warp/
+/.windsurf/
+# .claude: hanya skill antislop yang dirujuk CLAUDE.md
+/.claude/*
+!/.claude/skills/
+/.claude/skills/*
+!/.claude/skills/antislop/
