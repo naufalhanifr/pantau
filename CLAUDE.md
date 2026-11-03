@@ -2,6 +2,10 @@ Always use the ponytail skill (full level) at the start of every session, unless
 
 Use the karpathy-guidelines skill when writing, reviewing, or refactoring code: keep changes small and surgical, state assumptions, and define success criteria before coding.
 
+## Git
+- After committing, push straight to `main` (origin: https://github.com/naufalhanifr/pantau.git) without asking. No feature branches or PRs; the user works solo.
+- The repo must stay private. Before pushing, check: `curl -s -o /dev/null -w "%{http_code}" https://api.github.com/repos/naufalhanifr/pantau` (404 = private, 200 = public). If it is public, hold the push and warn. `gh` is not installed on the user's Mac.
+
 <!-- antislop:start -->
 ## antislop
 For UI, copy, people, mobile layout, or code comments work, read these installed skill files directly (use these paths even if a same-named global skill exists):
