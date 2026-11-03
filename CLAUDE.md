@@ -1,5 +1,7 @@
 Always use the ponytail skill (full level) at the start of every session, unless the user says "stop ponytail" or "normal mode".
 
+Use the karpathy-guidelines skill when writing, reviewing, or refactoring code: keep changes small and surgical, state assumptions, and define success criteria before coding.
+
 <!-- antislop:start -->
 ## antislop
 For UI, copy, people, mobile layout, or code comments work, read these installed skill files directly (use these paths even if a same-named global skill exists):
