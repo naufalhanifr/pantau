@@ -21,6 +21,7 @@ server.env
 /.factory/
 /.gemini/
 /.github/prompts/
+/.github/skills/
 /.hermes/
 /.kilocode/
 /.kiro/
