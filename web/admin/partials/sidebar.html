@@ -3,19 +3,19 @@
   <!-- Satu grup per jenis data. Menu baru: salin satu grup dan daftarkan jenisnya di ADMIN_JENIS (navigation.js). -->
   <nav class="pantau-sidebar-nav-list">
     <div class="pantau-sidebar-group">
-      <div class="pantau-sidebar-group-title"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i><span class="pantau-sidebar-label">Tagihan</span></div>
+      <button class="pantau-sidebar-group-title" type="button" aria-expanded="true" onclick="toggleSidebarGroup(this)"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i><span class="pantau-sidebar-label">Tagihan</span><i class="fa-solid fa-chevron-down pantau-sidebar-group-chevron pantau-sidebar-label" aria-hidden="true"></i></button>
       <button class="pantau-sidebar-nav" data-jenis="tagihan" data-nav="upload" type="button" onclick="showAdminPage('upload', 'tagihan')"><i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i><span class="pantau-sidebar-label">Upload Excel</span></button>
       <button class="pantau-sidebar-nav" data-jenis="tagihan" data-nav="workspace" type="button" onclick="showAdminPage('workspace', 'tagihan')"><i class="fa-solid fa-table-cells" aria-hidden="true"></i><span class="pantau-sidebar-label">Workspace</span></button>
       <button class="pantau-sidebar-nav" data-jenis="tagihan" data-nav="riwayat" type="button" onclick="showAdminPage('riwayat', 'tagihan')"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i><span class="pantau-sidebar-label">Riwayat Perubahan</span></button>
     </div>
     <div class="pantau-sidebar-group">
-      <div class="pantau-sidebar-group-title"><i class="fa-solid fa-money-bill-transfer" aria-hidden="true"></i><span class="pantau-sidebar-label">Pembayaran</span></div>
+      <button class="pantau-sidebar-group-title" type="button" aria-expanded="true" onclick="toggleSidebarGroup(this)"><i class="fa-solid fa-money-bill-transfer" aria-hidden="true"></i><span class="pantau-sidebar-label">Pembayaran</span><i class="fa-solid fa-chevron-down pantau-sidebar-group-chevron pantau-sidebar-label" aria-hidden="true"></i></button>
       <button class="pantau-sidebar-nav" data-jenis="pembayaran" data-nav="upload" type="button" onclick="showAdminPage('upload', 'pembayaran')"><i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i><span class="pantau-sidebar-label">Upload Excel</span></button>
       <button class="pantau-sidebar-nav" data-jenis="pembayaran" data-nav="workspace" type="button" onclick="showAdminPage('workspace', 'pembayaran')"><i class="fa-solid fa-table-cells" aria-hidden="true"></i><span class="pantau-sidebar-label">Workspace</span></button>
       <button class="pantau-sidebar-nav" data-jenis="pembayaran" data-nav="riwayat" type="button" onclick="showAdminPage('riwayat', 'pembayaran')"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i><span class="pantau-sidebar-label">Riwayat Perubahan</span></button>
     </div>
     <div class="pantau-sidebar-group">
-      <div class="pantau-sidebar-group-title"><i class="fa-solid fa-users" aria-hidden="true"></i><span class="pantau-sidebar-label">Karyawan</span></div>
+      <button class="pantau-sidebar-group-title" type="button" aria-expanded="true" onclick="toggleSidebarGroup(this)"><i class="fa-solid fa-users" aria-hidden="true"></i><span class="pantau-sidebar-label">Karyawan</span><i class="fa-solid fa-chevron-down pantau-sidebar-group-chevron pantau-sidebar-label" aria-hidden="true"></i></button>
       <button class="pantau-sidebar-nav" data-jenis="karyawan" data-nav="upload" type="button" onclick="showAdminPage('upload', 'karyawan')"><i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i><span class="pantau-sidebar-label">Upload Excel</span></button>
       <button class="pantau-sidebar-nav" data-jenis="karyawan" data-nav="workspace" type="button" onclick="showAdminPage('workspace', 'karyawan')"><i class="fa-solid fa-table-cells" aria-hidden="true"></i><span class="pantau-sidebar-label">Workspace</span></button>
       <button class="pantau-sidebar-nav" data-jenis="karyawan" data-nav="riwayat" type="button" onclick="showAdminPage('riwayat', 'karyawan')"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i><span class="pantau-sidebar-label">Riwayat Perubahan</span></button>

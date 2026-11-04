@@ -231,21 +231,53 @@
   margin-top: 10px;
 }
 
+/* Judul grup = tombol buka/tutup sub menu (toggleSidebarGroup di app-shell.js). */
 .pantau-sidebar-group-title {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
+  min-height: 36px;
   padding: 4px 12px;
   color: #0f172a;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: .06em;
+  text-align: left;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
+@media (pointer: coarse) {
+  .pantau-sidebar-group-title { min-height: 44px; }
+}
+
+.pantau-sidebar-group-title:hover {
+  background: #f1f5f9;
+}
+
+.pantau-sidebar-group-title:focus-visible {
+  outline: 2px solid #059669;
+  outline-offset: 2px;
+}
+
 .pantau-sidebar-group-title > i {
   color: #059669;
+}
+
+.pantau-sidebar-group-title > .pantau-sidebar-group-chevron {
+  margin-left: auto;
+  color: #94a3b8;
+  font-size: 11px;
+  transition: transform .2s ease;
+}
+
+.pantau-sidebar-group.is-closed .pantau-sidebar-group-chevron {
+  transform: rotate(-90deg);
+}
+
+.pantau-sidebar-group.is-closed > .pantau-sidebar-nav {
+  display: none;
 }
 
 /* Sidebar diciutkan: hanya ikon. */

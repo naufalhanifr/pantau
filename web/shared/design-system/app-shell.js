@@ -1,5 +1,5 @@
 // Design system: perilaku kerangka aplikasi (app-shell.css).
-// Jam WIB ([data-pantau-clock="date"|"time"]), ciutkan sidebar (toggleSidebar), dan tinggi header untuk posisi sidebar.
+// Jam WIB ([data-pantau-clock="date"|"time"]), ciutkan sidebar (toggleSidebar), buka/tutup grup menu (toggleSidebarGroup), dan tinggi header untuk posisi sidebar.
 (function(){
   const dateFormat=new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',weekday:'long',day:'2-digit',month:'long',year:'numeric'});
   const timeFormat=new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
@@ -21,6 +21,11 @@
     toggle.setAttribute('aria-label',collapsed?'Perluas sidebar':'Ciutkan sidebar');
     toggle.setAttribute('aria-expanded',String(!collapsed));
     const icon=toggle.querySelector('i'); if(icon) icon.className='fa-solid '+(collapsed?'fa-angles-right':'fa-angles-left');
+  };
+  // Buka/tutup sub menu satu grup (tombol .pantau-sidebar-group-title).
+  window.toggleSidebarGroup=function(title){
+    const closed=title.closest('.pantau-sidebar-group').classList.toggle('is-closed');
+    title.setAttribute('aria-expanded',String(!closed));
   };
   // HP: sidebar terbuka menutupi konten, jadi mulai tertutup dan menutup lagi setelah menu dipilih.
   const phone=window.matchMedia('(max-width: 640px)');
