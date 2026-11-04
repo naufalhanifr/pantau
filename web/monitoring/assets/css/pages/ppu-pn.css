@@ -1,10 +1,14 @@
 /* Menu PPU PN. Tabel, select, search, dan pagination memakai design system; sisanya kelas Tailwind di ppu-pn.html. */
 
-/* Isi tabel netral (batalkan warna kolom nominal dari table.css); nama SKPD/Satker panjang dibungkus, bukan dipotong. */
+/* Isi tabel netral: batalkan warna kolom nominal dari table.css. */
 #ppuPage .pantau-table tbody td {
-  color: #334155 !important;
-  white-space: normal;
-  overflow-wrap: anywhere;
+  color: var(--pantau-text) !important;
+}
+
+/* Nominal kelompok kecil tidak dikirim server. */
+.ppu-money-hidden {
+  color: var(--pantau-muted);
+  font-size: 13px;
 }
 
 /* Filter: berdampingan bila muat, bertumpuk satu kolom di HP. */
@@ -15,31 +19,118 @@
   min-width: 0;
 }
 
+/* Lebar tetap agar semuanya satu baris bila muat; di layar sempit melebar mengisi baris sendiri-sendiri. */
 .ppu-filters > .pantau-select-field {
   flex: 1 1 220px;
-  width: auto;
+  width: 220px;
   min-width: 0;
+}
+
+/* Sama dengan search Data Badan Usaha (w-72). */
+.ppu-filters > .ppu-filter-search {
+  flex: 0 1 18rem;
+  width: 18rem;
+}
+
+@media (max-width: 639px) {
+  .ppu-filters > .ppu-filter-search {
+    flex-grow: 1;
+  }
+}
+
+/* Daftar opsi combobox tampil di atas kartu dan tabel, sama dengan #employeeBusinessDropdown. */
+.ppu-combo .pantau-dropdown-list {
+  z-index: 80;
 }
 
 .ppu-filters .pantau-search {
   display: block;
 }
 
-/* Wadah tabel sempit (HP, tablet, atau laptop dengan sidebar terbuka): tiap baris jadi kartu "label  nilai",
+/* Kepala kartu bertumpuk (di bawah md): tanpa ini lebar filter mengikuti isinya dan terpotong di tepi kartu. */
+@media (max-width: 767px) {
+  .ppu-filters {
+    width: 100%;
+  }
+}
+
+/* Popup Detail: label jenis peserta yang panjang dibungkus; di HP kolom angka tetap terlihat tanpa scroll horizontal. */
+#ppuDetailDialog .pantau-table tbody td:first-child {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 639px) {
+  #ppuDetailDialog .pantau-table col:nth-child(2) {
+    width: 72px;
+  }
+
+  #ppuDetailDialog .pantau-table col:nth-child(3) {
+    width: 132px;
+  }
+
+  #ppuDetailDialog .pantau-table th,
+  #ppuDetailDialog .pantau-table td {
+    padding-inline: 8px !important;
+  }
+}
+
+/* Data Karyawan tetap tabel dan digeser ke samping; lebar kolom memuat nama terpanjang di data, jadi tidak terpotong "...". */
+.ppu-karyawan-table col:nth-child(2) {
+  width: 420px;
+}
+
+.ppu-karyawan-table col:nth-child(4) {
+  width: 520px;
+}
+
+.ppu-karyawan-table col:nth-child(5) {
+  width: 560px;
+}
+
+/* Rata tengah di tabel selebar ini jatuh di luar layar kecil, pesan kosong atau gagal jadi tidak terlihat. */
+.ppu-karyawan-table .pantau-empty-state {
+  text-align: left !important;
+}
+
+/* Wadah tabel SKPD sempit (HP, tablet, atau laptop dengan sidebar terbuka): tiap baris jadi kartu "label  nilai",
    1 kolom di HP dan 2 kolom di tablet, tanpa scroll horizontal. Diukur dari lebar wadah karena sidebar ikut memakan lebar. */
-#ppuPage .pantau-table-scroll {
+#ppuPage [data-ppu-view]:not(#ppuKaryawanView) .pantau-table-scroll {
   container-type: inline-size;
 }
 
-@container (max-width: 899px) {
+/* 1050px: di bawah ini kolom SKPD dan Satker (berbagi rata sisa lebar setelah kolom lain, 644px) terlalu sempit untuk dibaca. */
+@container (max-width: 1049px) {
   #ppuPage .pantau-table colgroup,
-  #ppuPage .pantau-table thead,
+  #ppuPage .pantau-table thead th:not(.column-sortable),
   #ppuPage .pantau-table tbody td[data-label="No"] {
     display: none;
   }
 
-  #ppuPage .pantau-table {
+  #ppuPage .pantau-table,
+  #ppuPage .pantau-table thead {
     display: block;
+  }
+
+  /* Tanpa kolom, judul yang bisa diurutkan jadi deretan tombol di atas kartu. */
+  #ppuPage .pantau-table thead {
+    margin-bottom: 12px;
+  }
+
+  #ppuPage .pantau-table thead tr {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    background: transparent !important;
+  }
+
+  #ppuPage .pantau-table thead th {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 12px !important;
+    border: 1px solid var(--pantau-border) !important;
+    background: #fff;
   }
 
   #ppuPage .pantau-table tbody {
@@ -51,7 +142,7 @@
   #ppuPage .pantau-table tbody tr {
     display: block;
     padding: 8px 0;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid var(--pantau-border) !important;
   }
 
   #ppuPage .pantau-table tbody td {
@@ -62,13 +153,24 @@
     max-width: none;
     padding: 6px 16px !important;
     text-align: right !important;
+    /* Kartu dipakai di layar sentuh, tanpa tooltip "...": nama panjang dibungkus agar tetap terbaca. */
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  /* Daftar bisa puluhan Satker: dua baris saja di kartu, lengkapnya di popup Detail. */
+  .ppu-satker-names {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
 
   #ppuPage .pantau-table tbody td::before {
     content: attr(data-label);
     flex: none;
     max-width: 45%;
-    color: #64748b;
+    color: var(--pantau-muted);
     font-size: 12px;
     line-height: 16px;
     text-align: left;

@@ -51,12 +51,12 @@
 
 .pantau-dropdown-option:hover,
 .pantau-dropdown-option[aria-selected="true"] {
-  background: #d1fae5;
-  color: #047857;
+  background: var(--pantau-green-soft);
+  color: var(--pantau-green-dark);
 }
 
 .pantau-dropdown-option:focus-visible {
-  outline: 2px solid #059669;
+  outline: 2px solid var(--pantau-green);
   outline-offset: -2px;
 }
 
@@ -66,6 +66,6 @@
 }
 
 .pantau-dropdown-option i {
-  color: #059669;
+  color: var(--pantau-green);
   font-size: 12px;
 }

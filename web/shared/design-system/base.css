@@ -1,9 +1,19 @@
-/* Dasar design system PANTAU: radius 8px seragam dan chevron select. */
+/* Dasar design system PANTAU: warna, radius 8px seragam, dan chevron select. */
 
-/* Seluruh komponen yang menggunakan sudut membulat diseragamkan ke 8px. */
-*,
-*::before,
-*::after {
+:root {
+  --pantau-green: #059669;
+  --pantau-green-dark: #047857;
+  --pantau-green-soft: #d1fae5;
+  --pantau-border: #e2e8f0;
+  --pantau-muted: #64748b;
+  --pantau-text: #334155;
+  --pantau-ink: #0f172a;
+}
+
+/* Seluruh komponen yang menggunakan sudut membulat diseragamkan ke 8px. Sel grid Tabulator tetap persegi. */
+*:not(.tabulator, .tabulator *),
+*:not(.tabulator, .tabulator *)::before,
+*:not(.tabulator, .tabulator *)::after {
   border-radius: 8px !important;
 }
 

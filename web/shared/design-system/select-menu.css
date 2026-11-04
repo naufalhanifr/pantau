@@ -1,7 +1,9 @@
 /* Select global. Tampilan list opsinya memakai dropdown-list.css.
    Satu komponen, dua varian:
-   - Tanpa header: <select class="pantau-select">…</select>
-   - Dengan header (filter): <label class="pantau-select-field"><span class="pantau-select-field-label">Dari bulan</span><select class="pantau-select">…</select></label>
+   - Tanpa nama: <select class="pantau-select">…</select>
+   - Filter: <label class="pantau-select-field"><span class="pantau-select-field-label">Status</span><select class="pantau-select">…</select></label>
+     Header filter tidak terlihat; namanya hanya dibaca screen reader.
+   - Filter bulan global: tambah .pantau-select-field-titled pada label agar headernya terlihat.
      Kelompokkan beberapa filter dalam <div class="pantau-select-field-group">. */
 
 select.pantau-select {
@@ -10,7 +12,7 @@ select.pantau-select {
 
 select.pantau-select:focus {
   outline: none !important;
-  border-color: #059669 !important;
+  border-color: var(--pantau-green) !important;
   box-shadow: 0 0 0 2px rgba(16, 185, 129, .25) !important;
 }
 
@@ -28,7 +30,7 @@ select.pantau-select:focus {
   height: 44px;
   min-height: 44px;
   padding: 0 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--pantau-border);
   background: #fff;
   color: #000;
   font-size: 14px;
@@ -38,12 +40,12 @@ select.pantau-select:focus {
 }
 
 .pantau-native-select-wrap>.pantau-native-select-trigger:focus-visible {
-  outline: 2px solid #059669;
+  outline: 2px solid var(--pantau-green);
   outline-offset: 2px;
 }
 
 .pantau-native-select-wrap>.pantau-native-select-trigger[aria-expanded="true"] {
-  border-color: #059669;
+  border-color: var(--pantau-green);
   box-shadow: 0 0 0 2px rgba(16,185,129,.18);
 }
 
@@ -57,7 +59,7 @@ select.pantau-select:focus {
 
 .pantau-native-select-trigger .pantau-native-select-chevron {
   font-size: 11px;
-  color: #64748b;
+  color: var(--pantau-muted);
   flex: 0 0 auto;
 }
 
@@ -92,15 +94,14 @@ select.pantau-select:focus {
 #pageSizeSelect:focus,
 #employeePageSize:focus {
   outline: none !important;
-  border-color: #059669 !important;
+  border-color: var(--pantau-green) !important;
   box-shadow: 0 0 0 2px rgba(16, 185, 129, .25) !important;
 }
 
-/* Varian dengan header: lebar filter seragam di semua menu, jarak header ke dropdown 4px. */
+/* Varian filter: lebar seragam di semua menu. */
 .pantau-select-field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
   width: 180px;
   max-width: 100%;
   margin: 0;
@@ -108,9 +109,27 @@ select.pantau-select:focus {
 
 .pantau-select-field-label {
   all: unset;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Filter bulan global: header terlihat, jarak ke dropdown 4px. */
+.pantau-select-field-titled {
+  gap: 4px;
+}
+
+.pantau-select-field-titled > .pantau-select-field-label {
+  position: static;
   display: block;
-  color: #64748b;
-  font-family: inherit;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+  color: var(--pantau-muted);
   font-size: 12px;
   line-height: 16px;
   font-weight: 600;

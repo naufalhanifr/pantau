@@ -47,11 +47,16 @@ let wsStatusTimer = null;
 
 async function initWorkspace() {
     const select = document.getElementById("workspaceMonth");
-    if (!select.options.length) select.innerHTML = MONTHS.map(month => `<option>${month}</option>`).join("");
+    const jenis = activeAdminJenis;
+    // Hanya bulan yang sudah diupload; bulan baru masuk lewat menu Upload Excel.
+    const uploaded = await uploadedMonths(jenis);
+    if (jenis !== activeAdminJenis) return;
+    select.innerHTML = uploaded.map(month => `<option>${month}</option>`).join("");
     // Bulan awal: dari tombol Workspace di Upload, bulan terakhir dibuka di menu yang sama, atau bulan terakhir yang sudah diupload.
-    let month = wsRequestedMonth || (wsJenis === activeAdminJenis ? wsMonth : "");
+    let month = wsRequestedMonth || (wsJenis === jenis ? wsMonth : "");
     wsRequestedMonth = "";
-    if (!month) month = (await latestUploadedMonth(activeAdminJenis)) || select.value;
+    if (!uploaded.includes(month)) month = uploaded.at(-1) || "";
+    select.value = month;
     if (!wsTable) {
         wsTable = createSpreadsheet("#workspaceGrid", wsSchema(activeAdminJenis).columns, [], {
             index: "_id",
@@ -68,12 +73,13 @@ async function initWorkspace() {
     }
 }
 
-async function latestUploadedMonth(jenis) {
+async function uploadedMonths(jenis) {
     try {
         const { per_bulan } = await adminApi("/api/admin/summary");
-        return per_bulan.filter(m => m[`${UPLOAD_JENIS[jenis].prefix}_rows`]).at(-1)?.bulan || "";
-    } catch {
-        return "";
+        return per_bulan.filter(m => m[`${UPLOAD_JENIS[jenis].prefix}_rows`]).map(m => m.bulan);
+    } catch (error) {
+        showToast(`Gagal memuat daftar bulan: ${error.message}`, "error");
+        return [];
     }
 }
 
@@ -83,8 +89,13 @@ function formatWorkspaceRow(row) {
     const element = row.getElement();
     element.classList.toggle("ws-row-new", !original);
     element.classList.toggle("ws-row-changed", Boolean(original) && isWorkspaceRowChanged(original, data));
-    const key = wsSchema().key;
-    row.getCells().forEach(cell => cell.getElement().classList.toggle("ws-cell-invalid", cell.getField() === key && !String(data[key] || "").trim()));
+    const { key, numbers } = wsSchema();
+    // Kolom angka: bukan angka atau negatif (server akan menolaknya). Kolom kunci: kosong.
+    row.getCells().forEach(cell => {
+        const field = cell.getField();
+        const invalid = numbers.includes(field) ? typeof data[field] !== "number" || data[field] < 0 : field === key && !String(data[key] || "").trim();
+        cell.getElement().classList.toggle("ws-cell-invalid", invalid);
+    });
 }
 
 function isWorkspaceRowChanged(original, data) {
@@ -92,14 +103,14 @@ function isWorkspaceRowChanged(original, data) {
 }
 
 async function loadWorkspace(month) {
-    if (!month || !wsTable) return;
+    if (!wsTable) return;
     if (wsJenis !== activeAdminJenis) wsTable.setColumns(wsSchema(activeAdminJenis).columns);
     wsJenis = activeAdminJenis;
     wsMonth = month;
     document.getElementById("workspaceMonth").value = month;
     document.getElementById("workspaceStatus").textContent = `Memuat ${ADMIN_JENIS[wsJenis]} ${month}...`;
     try {
-        const { rows } = await adminApi(`/api/admin/records?jenis=${wsJenis}&bulan=${encodeURIComponent(month)}`);
+        const { rows } = month ? await adminApi(`/api/admin/records?jenis=${wsJenis}&bulan=${encodeURIComponent(month)}`) : { rows: [] };
         wsOriginal = new Map();
         wsDeleted = new Set();
         const data = rows.map(row => {
@@ -137,6 +148,7 @@ function filterWorkspace(query) {
 }
 
 function addWorkspaceRow() {
+    if (!wsMonth) return showToast(`Belum ada data ${ADMIN_JENIS[wsJenis]}. Upload dulu lewat menu Upload Excel.`, "info");
     const id = wsNextId++;
     const { key, numbers } = wsSchema();
     wsTable.addRow({ _id: id, ...Object.fromEntries(wsFields().map(field => [field, numbers.includes(field) ? 0 : ""])) }, true)
@@ -187,7 +199,7 @@ function scheduleWorkspaceStatus() {
 function updateWorkspaceStatus() {
     const { upserts, deletes } = workspaceChanges();
     const changes = upserts.length + deletes.length;
-    document.getElementById("workspaceStatus").textContent =
+    document.getElementById("workspaceStatus").textContent = !wsMonth ? `Belum ada data ${ADMIN_JENIS[wsJenis]}. Upload dulu lewat menu Upload Excel.` :
         `${ADMIN_JENIS[wsJenis]} ${wsMonth} · ${formatNumber(wsTable.getDataCount())} baris · ` +
         (changes ? `${upserts.length} baris diubah/ditambah, ${deletes.length} dihapus (belum disimpan)` : "tidak ada perubahan") +
         " · Klik dua kali untuk mengubah sel, salin/tempel seperti Excel.";

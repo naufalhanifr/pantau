@@ -14,7 +14,7 @@ INCLUDES=(--include "/backend/***" --include "/web/***" --include /requirements.
 if [ "${1:-}" = "--with-data" ]; then
   INCLUDES+=(--include "/Data/***")
   # Backup di luar Data/: rsync --delete menghapus file Data/ server yang tidak ada di lokal.
-  $SSH "$HOST" "mkdir -p ~/pantau-backup && [ ! -f $APP/Data/pantau.db ] || cp $APP/Data/pantau.db ~/pantau-backup/pantau-\$(date +%Y%m%d-%H%M%S).db"
+  $SSH "$HOST" "mkdir -p ~/pantau-backup && [ ! -f $APP/Data/pantau.db ] || cp -p $APP/Data/pantau.db ~/pantau-backup/pantau-\$(date +%Y%m%d-%H%M%S).db; chmod 700 ~/pantau-backup"
 fi
 
 rsync -az --delete --exclude __pycache__ --exclude .DS_Store "${INCLUDES[@]}" --exclude "*" -e "$SSH" ./ "$HOST:$APP/"
@@ -30,7 +30,22 @@ sudo systemctl restart pantau
 sleep 3
 systemctl is-active pantau
 curl -fsS -o /dev/null -w 'HTTP %{http_code}\n' http://127.0.0.1:8000/
+curl -fsS -o /dev/null http://127.0.0.1:8000/api/health
+# Izin file data: hanya pemilik, bila service berjalan sebagai pemilik itu (kalau tidak, service tidak bisa membacanya).
+if [ -f Data/pantau.db ] && [ \"\$(systemctl show -p User --value pantau)\" = \"\$(stat -c %U Data/pantau.db)\" ]; then
+  chmod 700 Data; find Data -maxdepth 1 -type f -exec chmod 600 {} +
+else
+  echo 'PERINGATAN: izin Data/ tidak diubah karena service tidak berjalan sebagai pemilik pantau.db; pastikan file itu tidak bisa dibaca semua pengguna.'
+fi
+# Backup harian 01:15; baris lama diganti, jadi deploy berulang tidak menggandakan jadwal.
+if command -v crontab >/dev/null; then
+  { crontab -l 2>/dev/null | grep -v pantau-backup || true; echo '15 1 * * * cd $APP && .venv/bin/python -m backend.services.backup harian >/dev/null # pantau-backup'; } | crontab -
+else
+  echo 'PERINGATAN: crontab tidak ada, backup harian belum terpasang (lihat README).'
+fi
+curl -fsS http://127.0.0.1:8000/api/ppu-pn/satker | grep -q '\"months\":\[\]' && echo 'PERINGATAN: data PPU PN masih kosong; upload lewat web admin, menu PPU PN.'
+grep -qs 'client_max_body_size 50m' /etc/nginx/sites-available/pantau-admin || echo 'PERINGATAN: nginx-admin.conf versi terbaru belum terpasang; simpan data Karyawan bisa gagal 413 (lihat README).'
 pid=\$(systemctl show -p MainPID --value pantau)
-for v in PANTAU_ADMIN_PASSWORD PANTAU_KARYAWAN_PASSWORD PANTAU_SECRET_KEY; do
+for v in PANTAU_ADMIN_PASSWORD PANTAU_KARYAWAN_PASSWORD PANTAU_PPU_PN_PASSWORD PANTAU_SECRET_KEY; do
   sudo grep -qz \"^\$v=\" /proc/\$pid/environ || echo \"PERINGATAN: \$v belum di-set di service pantau; login web akan ditolak (lihat README).\"
 done"

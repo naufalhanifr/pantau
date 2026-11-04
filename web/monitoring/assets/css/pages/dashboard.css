@@ -1,14 +1,9 @@
 /* Menu Dashboard. Jarak antar-blok ditulis sebagai class di dashboard.html; warna tombol aktif ada di buttons.css. */
 
 /* Kartu ringkasan menyesuaikan ruang yang tersedia, tanpa ukuran lebar/tinggi tetap. */
-#summaryCards {
+#summaryCards,
+#ppuSummaryCards {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
-}
-
-/* Label kartu ringkasan: menimpa line-height 1.5 dari common.css. */
-#summaryCards .summary-card p {
-  line-height: 1.25rem !important;
-  font-weight: 700 !important;
 }
 
 .trend-period-row {
@@ -43,7 +38,7 @@
   flex: 0 0 auto !important;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639px) {
   #dashboardPage .pantau-table thead th,
   #dashboardPage .pantau-table tbody td {
     padding: 10px 12px !important;
@@ -60,5 +55,21 @@
 }
 
 #dashboardPage table.pantau-table tbody tr:last-child > td {
-  border-bottom: 1px solid #e2e8f0 !important;
+  border-bottom: 1px solid var(--pantau-border) !important;
+}
+
+/* Tab PPU PN: batalkan warna kolom nominal dari table.css; hanya Total Tunggakan yang berwarna. */
+#dashboardPpuPanel .pantau-table tbody td {
+  color: var(--pantau-text) !important;
+}
+
+#dashboardPpuPanel .pantau-table tbody td:nth-child(5) {
+  color: #f43f5e !important;
+}
+
+/* Nama SKPD/Satker panjang dibungkus, bukan dipotong, agar terbaca lengkap di layar sempit. */
+#dashboardPpuPanel .pantau-table tbody td:nth-child(2),
+#dashboardPpuPanel .pantau-table tbody td:nth-child(3) {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }

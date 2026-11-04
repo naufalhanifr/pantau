@@ -30,7 +30,7 @@
   justify-content: space-between;
   gap: 16px;
   padding: 12px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--pantau-border);
   border-radius: 0 !important;
   background: rgba(255, 255, 255, .95);
   backdrop-filter: blur(8px);
@@ -60,7 +60,7 @@
   width: 48px;
   height: 48px;
   background: linear-gradient(to bottom right, #10b981, #0d9488);
-  box-shadow: 0 4px 6px -1px #d1fae5, 0 2px 4px -2px #d1fae5;
+  box-shadow: 0 4px 6px -1px var(--pantau-green-soft), 0 2px 4px -2px var(--pantau-green-soft);
   color: #fff;
   font-size: 20px;
 }
@@ -75,7 +75,7 @@
 
 .pantau-brand-title {
   margin: 0;
-  color: #0f172a;
+  color: var(--pantau-ink);
   font-size: 24px;
   font-weight: 800;
   line-height: 1.25;
@@ -83,7 +83,7 @@
 }
 
 .pantau-brand-subtitle {
-  color: #047857;
+  color: var(--pantau-green-dark);
   font-size: 12px;
   font-weight: 600;
   line-height: 1.25;
@@ -117,7 +117,7 @@
 }
 
 .pantau-clock-time {
-  color: #047857;
+  color: var(--pantau-green-dark);
   font-size: 18px;
   line-height: 28px;
   font-weight: 700;
@@ -127,7 +127,7 @@
 
 .pantau-clock > i {
   display: none;
-  color: #047857;
+  color: var(--pantau-green-dark);
 }
 
 @media (max-width: 639px) {
@@ -136,7 +136,7 @@
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
-    border: 1px solid #d1fae5;
+    border: 1px solid var(--pantau-green-soft);
     background: #ecfdf5;
     text-align: left;
   }
@@ -156,7 +156,7 @@
   width: var(--pantau-sidebar-width);
   overflow-x: hidden;
   overflow-y: auto;
-  border-right: 1px solid #e2e8f0;
+  border-right: 1px solid var(--pantau-border);
   border-radius: 0 !important;
   background: #fff;
   transition: width .2s ease;
@@ -171,7 +171,7 @@
   margin: 16px 12px 12px;
   padding: 0 12px;
   flex-shrink: 0;
-  color: #64748b;
+  color: var(--pantau-muted);
   font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
@@ -210,12 +210,12 @@
 }
 
 .pantau-sidebar-nav:not(.pantau-sidebar-active):hover {
-  background: #d1fae5;
-  color: #047857;
+  background: var(--pantau-green-soft);
+  color: var(--pantau-green-dark);
 }
 
 .pantau-sidebar-nav.pantau-sidebar-active {
-  background: linear-gradient(135deg, #0f766e, #059669);
+  background: linear-gradient(135deg, #0f766e, var(--pantau-green));
   box-shadow: 0 4px 12px rgba(5, 150, 105, .18);
   color: #fff;
 }
@@ -239,7 +239,7 @@
   width: 100%;
   min-height: 36px;
   padding: 4px 12px;
-  color: #0f172a;
+  color: var(--pantau-ink);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: .06em;
@@ -257,12 +257,12 @@
 }
 
 .pantau-sidebar-group-title:focus-visible {
-  outline: 2px solid #059669;
+  outline: 2px solid var(--pantau-green);
   outline-offset: 2px;
 }
 
 .pantau-sidebar-group-title > i {
-  color: #059669;
+  color: var(--pantau-green);
 }
 
 .pantau-sidebar-group-title > .pantau-sidebar-group-chevron {
@@ -313,7 +313,7 @@
 }
 
 /* HP: konten selalu memberi ruang ikon saja; sidebar terbuka menutupi konten (sama seperti Dashboard). */
-@media (max-width: 640px) {
+@media (max-width: 639px) {
   :root { --pantau-sidebar-width: 210px; }
   .pantau-main,
   .pantau-app:has(.pantau-sidebar.is-collapsed) .pantau-main {
@@ -326,10 +326,10 @@
   z-index: 41;
   flex-shrink: 0;
   padding: 24px 16px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--pantau-border);
   border-radius: 0 !important;
   background: #fff;
-  color: #64748b;
+  color: var(--pantau-muted);
   font-size: 12px;
   text-align: center;
 }

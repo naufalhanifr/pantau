@@ -12,3 +12,73 @@
     padding: 16px;
   }
 }
+
+/* Judul card dan deskripsinya. Tata letak dengan filter/tombol di sebelahnya memakai kelas flex di elemen ini. */
+.pantau-card-head {
+  margin-bottom: 16px;
+}
+
+.pantau-card-head h3 {
+  margin: 0;
+  color: var(--pantau-ink);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 28px;
+}
+
+.pantau-card-head h3 + p {
+  margin: 0;
+  color: var(--pantau-muted);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* Kartu ringkasan: label, angka, dan keterangan. Warna keterangan mengikuti kartunya, lewat kelas text-* Tailwind. */
+.pantau-stat-label {
+  margin: 0;
+  color: var(--pantau-muted);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  letter-spacing: .025em;
+  text-transform: uppercase;
+}
+
+.pantau-stat-value {
+  margin: 20px 0 0;
+  color: var(--pantau-ink);
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+@media (min-width: 1024px) {
+  .pantau-stat-value {
+    font-size: 30px;
+  }
+}
+
+/* Kolom kartu di popup lebih sempit, jadi angkanya lebih kecil agar tidak terpotong. */
+.pantau-detail-modal .pantau-stat-value {
+  font-size: 20px;
+}
+
+@media (min-width: 1024px) {
+  .pantau-detail-modal .pantau-stat-value {
+    font-size: 24px;
+  }
+}
+
+.pantau-stat-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.pantau-stat-note i {
+  line-height: 16px;
+}

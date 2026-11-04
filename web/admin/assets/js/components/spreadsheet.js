@@ -27,7 +27,12 @@ function numberColumn(title, field, extra = {}) {
         hozAlign: "right",
         headerHozAlign: "right",
         mutator: value => parseAmount(value),
-        formatter: cell => formatNumber(cell.getValue()),
+        formatter: cell => {
+            const value = cell.getValue();
+            const invalid = typeof value !== "number" || value < 0;
+            cell.getElement().classList.toggle("ws-cell-invalid", invalid);
+            return typeof value === "number" ? formatNumber(value) : escapeHtml(value);
+        },
         ...extra,
     };
 }

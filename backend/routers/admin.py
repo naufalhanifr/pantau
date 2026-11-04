@@ -2,14 +2,15 @@ import logging
 from io import BytesIO
 from typing import Any, Literal
 
-from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Header, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse, Response
 from pydantic import BaseModel, Field
 
-from ..auth import check_login, issue_token, require_admin
+from ..auth import check_login, issue_token, require_admin, revoke_token
 from ..config import ADMIN_PASSWORD, MAX_UPLOAD_BYTES, MONTHS, WEB_DIR
 from ..db import connect, transaction
-from ..services import karyawan, records
+from ..services import karyawan, ppu_pn, records
+from ..services.backup import backup_db
 from ..services.excel import build_template, parse_workbook
 from ..templating import render_page
 
@@ -23,6 +24,8 @@ class LoginBody(BaseModel):
 
 
 Jenis = Literal["tagihan", "pembayaran", "karyawan"]
+# PPU PN hanya punya upload dan riwayat: berkasnya ±3 ribu baris dan langsung dari sumber, tanpa workspace.
+JenisRiwayat = Literal["tagihan", "pembayaran", "karyawan", "ppu_pn"]
 
 
 class ImportBody(BaseModel):
@@ -56,6 +59,12 @@ def login(body: LoginBody, request: Request):
     return {"token": issue_token()}
 
 
+@api.post("/logout")
+def logout(authorization: str = Header(default="")):
+    revoke_token(authorization)
+    return {"ok": True}
+
+
 @api.get("/summary")
 def summary():
     conn = connect()
@@ -63,6 +72,35 @@ def summary():
         return {"months": MONTHS, "per_bulan": records.month_summary(conn)}
     finally:
         conn.close()
+
+
+def _read_limited(file: UploadFile) -> bytes:
+    content = b"" if (file.size or 0) > MAX_UPLOAD_BYTES else file.file.read()
+    if (file.size or len(content)) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail=f"Ukuran file melebihi {MAX_UPLOAD_BYTES // 1024 // 1024} MB.")
+    return content
+
+
+@api.post("/ppu-pn/upload")
+def upload_ppu_pn(file: UploadFile = File(...), bulan: str = "", simpan: bool = False):
+    """simpan=False hanya membaca berkas dan melaporkan isinya, untuk ditampilkan di dialog konfirmasi."""
+    _check_month(bulan)
+    if not (file.filename or "").lower().endswith((".xlsx", ".xlsm")):
+        raise HTTPException(status_code=422, detail="Format file harus .xlsx atau .xlsm.")
+    try:
+        rows = ppu_pn.read_workbook(BytesIO(_read_limited(file)))
+    except ValueError as error:   # sheet/kolom tidak ada atau isi baris salah: pesannya memang untuk pengguna
+        raise HTTPException(status_code=422, detail=str(error))
+    except Exception:
+        log.exception("Gagal membaca Excel PPU PN %r (bulan=%s)", file.filename, bulan)
+        raise HTTPException(status_code=422, detail="File Excel tidak dapat dibaca. Pastikan file .xlsx/.xlsm asli, tidak rusak, dan tidak dikunci kata sandi.")
+    if not rows:
+        raise HTTPException(status_code=422, detail="Tidak ada baris peserta di file; data lama tidak diubah.")
+    if not simpan:
+        return {"filename": file.filename, "rows": len(rows), "total": sum(row[6] for row in rows), "bulan_file": ppu_pn.month_from_filename(file.filename or "")}
+    backup_db("sebelum-ganti")
+    with transaction() as conn:
+        return ppu_pn.import_rows(conn, rows, file.filename or "", bulan)
 
 
 @api.post("/upload")
@@ -74,9 +112,7 @@ def upload(file: UploadFile = File(...), jenis: str = "", bulan: str = ""):
         # File setahun ±26 MB JSON ke browser: Karyawan hanya lewat tombol Upload per bulan.
         raise HTTPException(status_code=422, detail="Upload Karyawan per bulan: pilih tombol Upload pada bulan yang dituju.")
     # Cek ukuran dulu (sudah diketahui dari multipart) supaya file raksasa tidak dimuat ke memori.
-    content = b"" if (file.size or 0) > MAX_UPLOAD_BYTES else file.file.read()
-    if (file.size or len(content)) > MAX_UPLOAD_BYTES:
-        raise HTTPException(status_code=413, detail=f"Ukuran file melebihi {MAX_UPLOAD_BYTES // 1024 // 1024} MB.")
+    content = _read_limited(file)
     try:
         if jenis == "karyawan":
             # Upload per bulan hanya mengirim baris bulan itu ke browser (file setahun ±150 ribu baris).
@@ -106,6 +142,11 @@ def import_data(body: ImportBody):
     _check_month(body.bulan)
     if not body.rows:
         raise HTTPException(status_code=422, detail="Tidak ada baris untuk disimpan.")
+    errors = karyawan.row_errors(body.bulan, body.rows) if body.jenis == "karyawan" else records.row_errors(body.rows)
+    if errors:
+        raise HTTPException(status_code=422, detail=errors)
+    if body.replace:
+        backup_db("sebelum-ganti")
     with transaction() as conn:
         if body.jenis == "karyawan":
             result = karyawan.import_month(conn, body.bulan, body.rows, body.replace, body.source)
@@ -141,7 +182,7 @@ def save_records(body: WorkspaceBody):
 
 
 @api.get("/history")
-def history(jenis: Jenis):
+def history(jenis: JenisRiwayat):
     conn = connect()
     try:
         return {"rows": records.import_log(conn, jenis)}

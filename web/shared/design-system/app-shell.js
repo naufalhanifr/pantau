@@ -28,7 +28,7 @@
     title.setAttribute('aria-expanded',String(!closed));
   };
   // HP: sidebar terbuka menutupi konten, jadi mulai tertutup dan menutup lagi setelah menu dipilih.
-  const phone=window.matchMedia('(max-width: 640px)');
+  const phone=window.matchMedia('(max-width: 639px)');
   const collapseOnPhone=()=>{const s=document.querySelector('.pantau-sidebar');if(phone.matches&&s&&!s.classList.contains('is-collapsed'))window.toggleSidebar();};
   collapseOnPhone();
   document.addEventListener('click',e=>{if(e.target.closest?.('.pantau-sidebar-nav'))collapseOnPhone();});

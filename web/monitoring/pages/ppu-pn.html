@@ -1,72 +1,85 @@
-<!-- Menu PPU PN: SKPD > Satker > Karyawan, satu section dengan tiga tampilan (ppu-pn.js).
-     SKPD dan Satker terbuka tanpa login. Karyawan berisi nama orang: login sama dengan Daftar Karyawan,
+<!-- Menu PPU PN: SKPD dan Karyawan, satu section dengan dua tampilan (ppu-pn.js).
+     SKPD terbuka tanpa login. Karyawan berisi nama orang: kata sandi dan sesi sendiri, terpisah dari Karyawan PPU BU;
      kartu #employeeLoginPanel dipindah ke #ppuKaryawanView oleh showPage (navigation.js). -->
 <section class="hidden" id="ppuPage">
     <div class="pantau-page" data-ppu-view="skpd">
-      <div class="pantau-page-head">
-        <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">SKPD PPU PN</h2>
-        <p class="text-sm text-slate-500 mt-1">SKPD di bawah PPU PN dengan jumlah Satker dan pesertanya.</p>
+      <div class="pantau-page-head flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+        <div class="min-w-0 flex-1">
+          <h2>SKPD PPU PN Periode <span data-ppu-period></span></h2>
+          <p>SKPD di bawah PPU PN dengan jumlah Satker dan pesertanya.</p>
+        </div>
+        <!-- Opsi bulan diisi ppu-pn.js: hanya bulan yang ada datanya. -->
+        <div class="pantau-select-field-group">
+          <label class="pantau-select-field pantau-select-field-titled"><span class="pantau-select-field-label">Dari bulan</span>
+            <select class="pantau-select" data-ppu-month="start" onchange="changePpuRange(this)"></select>
+          </label>
+          <label class="pantau-select-field pantau-select-field-titled"><span class="pantau-select-field-label">Sampai dengan</span>
+            <select class="pantau-select" data-ppu-month="end" onchange="changePpuRange(this)"></select>
+          </label>
+        </div>
       </div>
       <div class="pantau-card overflow-hidden">
-        <div class="mb-4 min-w-0">
-          <h3 class="text-lg font-bold text-slate-900">Data SKPD</h3>
-          <p class="text-sm text-slate-500" id="ppuSkpdCount"></p>
-        </div>
-        <div class="pantau-table-scroll">
-          <table class="pantau-table"><colgroup><col class="w-[64px]"><col><col class="w-[140px]"><col class="w-[140px]"><col class="w-[160px]"></colgroup>
-            <thead><tr><th>No</th><th>SKPD</th><th class="text-right">Jumlah Satker</th><th class="text-right">Jumlah Peserta</th><th class="text-center">Aksi</th></tr></thead>
-            <tbody id="ppuSkpdBody"><tr><td colspan="5" class="pantau-empty-state">Memuat data...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div class="pantau-page hidden" data-ppu-view="satker">
-      <div class="pantau-page-head">
-        <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Satker PPU PN</h2>
-        <p class="text-sm text-slate-500 mt-1">Satker dengan SKPD induk dan jumlah pesertanya.</p>
-      </div>
-      <div class="pantau-card overflow-hidden">
-        <div class="mb-4 flex flex-col md:flex-row justify-between gap-4">
+        <div class="pantau-card-head flex flex-col md:flex-row md:items-start flex-wrap justify-between gap-4">
           <div class="min-w-0">
-            <h3 class="text-lg font-bold text-slate-900">Data Satker</h3>
-            <p class="text-sm text-slate-500" id="ppuSatkerCount"></p>
+            <h3>Data SKPD</h3>
+            <p id="ppuSkpdCount"></p>
           </div>
           <div class="ppu-filters">
-            <label class="pantau-select-field"><span class="pantau-select-field-label">SKPD</span>
-              <select class="pantau-select" id="ppuSatkerSkpdFilter" aria-label="Filter SKPD" onchange="renderPpuSatker()"></select>
+            <label class="pantau-select-field ppu-filter-search"><span class="pantau-select-field-label">Cari Nama SKPD</span>
+              <span class="pantau-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input id="ppuSkpdSearch" type="text" autocomplete="off" placeholder="Nama SKPD" aria-label="Cari nama SKPD" oninput="renderPpuSkpd()">
+              </span>
             </label>
           </div>
         </div>
         <div class="pantau-table-scroll">
-          <table class="pantau-table"><colgroup><col class="w-[64px]"><col><col class="w-[260px]"><col class="w-[140px]"><col class="w-[160px]"></colgroup>
-            <thead><tr><th>No</th><th>Satker</th><th>SKPD</th><th class="text-right">Jumlah Peserta</th><th class="text-center">Aksi</th></tr></thead>
-            <tbody id="ppuSatkerBody"><tr><td colspan="5" class="pantau-empty-state">Memuat data...</td></tr></tbody>
+          <table class="pantau-table"><colgroup><col class="w-[64px]"><col><col><col class="w-[140px]"><col class="w-[140px]"><col class="w-[180px]"><col class="w-[120px]"></colgroup>
+            <thead><tr><th>No</th><th class="column-sortable" data-sort-column="skpd" onclick="sortPpu('skpd', 'skpd')"><div class="flex items-center gap-1"><span>SKPD</span><span class="column-sort-btn" aria-hidden="true"><i class="fa-solid fa-sort"></i></span></div></th><th class="column-sortable" data-sort-column="daftar_satker" onclick="sortPpu('skpd', 'daftar_satker')"><div class="flex items-center gap-1"><span>Satker</span><span class="column-sort-btn" aria-hidden="true"><i class="fa-solid fa-sort"></i></span></div></th><th class="text-center column-sortable" data-sort-column="satker" onclick="sortPpu('skpd', 'satker')"><div class="flex items-center justify-center gap-1"><span>Jumlah Satker</span><span class="column-sort-btn" aria-hidden="true"><i class="fa-solid fa-sort"></i></span></div></th><th class="text-center column-sortable" data-sort-column="peserta" onclick="sortPpu('skpd', 'peserta')"><div class="flex items-center justify-center gap-1"><span>Jumlah Peserta</span><span class="column-sort-btn" aria-hidden="true"><i class="fa-solid fa-sort"></i></span></div></th><th class="text-right column-sortable" data-sort-column="tunggakan" onclick="sortPpu('skpd', 'tunggakan')"><div class="flex items-center justify-end gap-1"><span>Total Tunggakan</span><span class="column-sort-btn" aria-hidden="true"><i class="fa-solid fa-sort"></i></span></div></th><th class="text-center">Aksi</th></tr></thead>
+            <tbody id="ppuSkpdBody"><tr><td colspan="7" class="pantau-empty-state">Memuat data...</td></tr></tbody>
           </table>
         </div>
       </div>
     </div>
 
     <div class="hidden" data-ppu-view="karyawan" id="ppuKaryawanView">
-    <div class="pantau-page hidden" data-karyawan-protected>
-      <div class="pantau-page-head">
-        <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Karyawan PPU PN</h2>
-        <p class="text-sm text-slate-500 mt-1">Peserta dan anggota keluarganya, per Satker dan SKPD.</p>
+    <div class="pantau-page hidden" data-karyawan-protected="ppu-karyawan">
+      <div class="pantau-page-head flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+        <div class="min-w-0 flex-1">
+          <h2>Karyawan PPU PN Periode <span id="ppuKaryawanPeriod"></span></h2>
+          <p>Peserta dan anggota keluarganya, per Satker dan SKPD.</p>
+        </div>
+        <!-- Opsi bulan diisi ppu-pn.js: hanya bulan yang ada datanya. -->
+        <div class="flex items-end gap-2 shrink-0">
+          <label class="pantau-select-field pantau-select-field-titled"><span class="pantau-select-field-label">Bulan tagih</span>
+            <select class="pantau-select" data-ppu-month="end" aria-label="Bulan tagih" onchange="changePpuMonth(this.value)"></select>
+          </label>
+          <button class="pantau-session-logout" type="button" onclick="karyawanLogout()"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i><span>Keluar</span></button>
+        </div>
       </div>
       <div class="pantau-card overflow-hidden">
-        <div class="mb-4 flex flex-col md:flex-row justify-between gap-4">
+        <div class="pantau-card-head flex flex-col md:flex-row md:items-start flex-wrap justify-between gap-4">
           <div class="min-w-0">
-            <h3 class="text-lg font-bold text-slate-900">Data Karyawan</h3>
-            <p class="text-sm text-slate-500" id="ppuPesertaCount"></p>
+            <h3>Data Karyawan</h3>
+            <p id="ppuPesertaCount"></p>
           </div>
           <div class="ppu-filters">
-            <label class="pantau-select-field"><span class="pantau-select-field-label">SKPD</span>
-              <select class="pantau-select" id="ppuPesertaSkpdFilter" aria-label="Filter SKPD" onchange="renderPpuSatkerOptions(); filterPpuPeserta()"></select>
-            </label>
-            <label class="pantau-select-field"><span class="pantau-select-field-label">Satker</span>
-              <select class="pantau-select" id="ppuPesertaSatkerFilter" aria-label="Filter Satker" onchange="filterPpuPeserta()"></select>
-            </label>
-            <label class="pantau-select-field"><span class="pantau-select-field-label">Nama</span>
+            <div class="pantau-select-field ppu-combo" onkeydown="handlePpuComboKey(event, 'ppuPesertaSkpdFilter')">
+              <label class="pantau-select-field-label" for="ppuPesertaSkpdFilter">SKPD</label>
+              <div class="employee-business-field" id="ppuPesertaSkpdFilterField">
+                <input id="ppuPesertaSkpdFilter" type="text" role="combobox" placeholder="Semua SKPD" aria-label="Cari dan pilih SKPD" aria-autocomplete="list" aria-controls="ppuPesertaSkpdFilterList" aria-expanded="false" autocomplete="off" onfocus="this.select(); openPpuCombo('ppuPesertaSkpdFilter')" oninput="openPpuCombo('ppuPesertaSkpdFilter', this.value)">
+                <button type="button" class="employee-business-toggle" aria-label="Tampilkan daftar SKPD" onclick="togglePpuCombo('ppuPesertaSkpdFilter')"><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
+              </div>
+              <div id="ppuPesertaSkpdFilterList" class="pantau-dropdown-list hidden" role="listbox" aria-label="Daftar SKPD"></div>
+            </div>
+            <div class="pantau-select-field ppu-combo" onkeydown="handlePpuComboKey(event, 'ppuPesertaSatkerFilter')">
+              <label class="pantau-select-field-label" for="ppuPesertaSatkerFilter">Satker</label>
+              <div class="employee-business-field" id="ppuPesertaSatkerFilterField">
+                <input id="ppuPesertaSatkerFilter" type="text" role="combobox" placeholder="Semua Satker" aria-label="Cari dan pilih Satker" aria-autocomplete="list" aria-controls="ppuPesertaSatkerFilterList" aria-expanded="false" autocomplete="off" onfocus="this.select(); openPpuCombo('ppuPesertaSatkerFilter')" oninput="openPpuCombo('ppuPesertaSatkerFilter', this.value)">
+                <button type="button" class="employee-business-toggle" aria-label="Tampilkan daftar Satker" onclick="togglePpuCombo('ppuPesertaSatkerFilter')"><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
+              </div>
+              <div id="ppuPesertaSatkerFilterList" class="pantau-dropdown-list hidden" role="listbox" aria-label="Daftar Satker"></div>
+            </div>
+            <label class="pantau-select-field ppu-filter-search"><span class="pantau-select-field-label">Nama</span>
               <span class="pantau-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
                 <input id="ppuPesertaSearch" type="text" autocomplete="off" placeholder="Cari nama peserta" aria-label="Cari nama peserta" oninput="filterPpuPeserta()">
               </span>
@@ -74,9 +87,9 @@
           </div>
         </div>
         <div class="pantau-table-scroll">
-          <table class="pantau-table"><colgroup><col class="w-[64px]"><col><col class="w-[160px]"><col class="w-[220px]"><col class="w-[220px]"></colgroup>
-            <thead><tr><th>No</th><th>Nama Peserta</th><th>Status Peserta</th><th>Satker</th><th>SKPD</th></tr></thead>
-            <tbody id="ppuPesertaBody"><tr><td colspan="5" class="pantau-empty-state">Memuat data...</td></tr></tbody>
+          <table class="pantau-table ppu-karyawan-table"><colgroup><col class="w-[64px]"><col><col class="w-[160px]"><col><col><col class="w-[110px]"></colgroup>
+            <thead><tr><th>No</th><th class="column-sortable" data-sort-column="nama_peserta" onclick="sortPpu('karyawan', 'nama_peserta')"><div class="flex items-center gap-1"><span>Nama Peserta</span><span class="column-sort-btn" aria-hidden="true"><i class="fa-solid fa-sort"></i></span></div></th><th class="column-sortable" data-sort-column="status" onclick="sortPpu('karyawan', 'status')"><div class="flex items-center gap-1"><span>Status Peserta</span><span class="column-sort-btn" aria-hidden="true"><i class="fa-solid fa-sort"></i></span></div></th><th class="column-sortable" data-sort-column="skpd" onclick="sortPpu('karyawan', 'skpd')"><div class="flex items-center gap-1"><span>SKPD</span><span class="column-sort-btn" aria-hidden="true"><i class="fa-solid fa-sort"></i></span></div></th><th class="column-sortable" data-sort-column="satker" onclick="sortPpu('karyawan', 'satker')"><div class="flex items-center gap-1"><span>Satker</span><span class="column-sort-btn" aria-hidden="true"><i class="fa-solid fa-sort"></i></span></div></th><th class="text-center">Aksi</th></tr></thead>
+            <tbody id="ppuPesertaBody"><tr><td colspan="6" class="pantau-empty-state">Memuat data...</td></tr></tbody>
           </table>
         </div>
         <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -93,3 +106,54 @@
     </div>
   </div>
 </section>
+<!-- Detail SKPD: komponen design system pantau-detail-modal; hanya angka agregat, jadi terbuka tanpa login. -->
+<dialog aria-labelledby="ppuDetailTitle" class="pantau-detail-modal" id="ppuDetailDialog">
+  <div class="pantau-detail-modal-header">
+    <div class="pantau-detail-modal-heading">
+      <h2 class="pantau-detail-modal-title" id="ppuDetailTitle">Detail</h2>
+      <p class="pantau-detail-modal-subtitle" id="ppuDetailSubtitle">-</p>
+    </div>
+    <button aria-label="Tutup detail" class="pantau-detail-modal-close" data-modal-close type="button"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="pantau-detail-modal-body">
+    <dl class="employee-detail-info" id="ppuDetailInfo"></dl>
+    <section class="pantau-detail-modal-section">
+      <div class="pantau-detail-modal-section-head"><h3>Jenis Peserta</h3></div>
+      <div class="pantau-table-scroll">
+        <table class="pantau-table"><colgroup><col><col class="w-[120px]"><col class="w-[180px]"></colgroup>
+          <thead><tr><th>Jenis Peserta</th><th class="text-right">Peserta</th><th class="text-right">Tunggakan</th></tr></thead>
+          <tbody id="ppuDetailJenis"></tbody>
+        </table>
+      </div>
+    </section>
+    <section class="pantau-detail-modal-section">
+      <div class="pantau-detail-modal-section-head"><h3>Daftar Satker</h3></div>
+      <div class="pantau-table-scroll">
+        <table class="pantau-table"><colgroup><col><col class="w-[120px]"><col class="w-[180px]"></colgroup>
+          <thead><tr><th>Satker</th><th class="text-right">Peserta</th><th class="text-right">Tunggakan</th></tr></thead>
+          <tbody id="ppuDetailSatker"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+  <div class="pantau-detail-modal-footer gap-2">
+    <button class="pantau-detail-modal-btn" onclick="ppuDetailDrill()" type="button">Lihat Karyawan</button>
+    <button class="pantau-detail-modal-btn" data-modal-close type="button">Tutup</button>
+  </div>
+</dialog>
+<!-- Detail Karyawan: berisi nama orang, datanya hanya dari /api/ppu-pn/peserta yang perlu login. -->
+<dialog aria-labelledby="ppuKaryawanName" class="pantau-detail-modal" id="ppuKaryawanDialog">
+  <div class="pantau-detail-modal-header">
+    <div class="pantau-detail-modal-heading">
+      <h2 class="pantau-detail-modal-title" id="ppuKaryawanName">Detail Karyawan</h2>
+      <p class="pantau-detail-modal-subtitle" id="ppuKaryawanSubtitle">-</p>
+    </div>
+    <button aria-label="Tutup detail" class="pantau-detail-modal-close" data-modal-close type="button"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="pantau-detail-modal-body">
+    <dl class="employee-detail-info" id="ppuKaryawanInfo"></dl>
+  </div>
+  <div class="pantau-detail-modal-footer">
+    <button class="pantau-detail-modal-btn" data-modal-close type="button">Tutup</button>
+  </div>
+</dialog>

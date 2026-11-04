@@ -9,11 +9,13 @@ function showPage(page) {
     document.getElementById("employeesPage")?.classList.toggle("hidden", page !== "employees");
     const ppu = page.startsWith("ppu-");
     document.getElementById("ppuPage")?.classList.toggle("hidden", !ppu);
-    // Satu kartu login untuk Daftar Karyawan dan Karyawan PPU PN: pindahkan ke menu yang dibuka.
+    // Satu kartu login untuk Karyawan PPU BU dan PPU PN, sesinya terpisah: pindahkan ke menu yang dibuka dan tampilkan keadaan sesi menu itu.
     const loginHost = { employees: "employeesPage", "ppu-karyawan": "ppuKaryawanView" }[page];
-    if (loginHost) document.getElementById(loginHost).prepend(document.getElementById("employeeLoginPanel"));
+    if (loginHost) { document.getElementById(loginHost).prepend(document.getElementById("employeeLoginPanel")); openLoginPanel(page); }
     document.querySelectorAll(".pantau-sidebar-nav").forEach(button => button.classList.toggle("pantau-sidebar-active", button.dataset.nav === page));
     if (page === "monitoring") loadRecords();
     if (page === "employees") showEmployeesPage();
     if (ppu) showPpuPage(page.slice(4));
+    // Bulan bisa sudah diganti di menu PPU PN, dan perubahan bulan berikutnya harus kembali ke tab ini.
+    if (page === "dashboard" && dashboardTab === "pn") showPpuPage("dashboard");
 }

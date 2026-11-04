@@ -1,6 +1,19 @@
 // Dashboard: filter periode, kartu ringkasan, dan tabel peringkat tertinggi.
 const TOP_TABLE_PAGE_SIZE = 5;
 const topTables = { tagihan: { rows: [], page: 1 }, bayar: { rows: [], page: 1 } };
+let dashboardTab = "bu";   // bu | pn
+
+// Tab PPU BU / PPU PN. Data PN dimuat saat tab dibuka, memakai ringkasan yang sama dengan menu SKPD.
+function showDashboardTab(tab) {
+    dashboardTab = tab;
+    document.querySelectorAll("[data-dashboard-tab]").forEach(el => el.classList.toggle("hidden", el.dataset.dashboardTab !== tab));
+    document.querySelectorAll("[data-dashboard-tab-btn]").forEach(button => {
+        const active = button.dataset.dashboardTabBtn === tab;
+        button.classList.toggle("pantau-green-active", active);
+        button.setAttribute("aria-pressed", active);
+    });
+    if (tab === "pn") showPpuPage("dashboard");
+}
 
 function setText(id, text) {
     const el = document.getElementById(id);

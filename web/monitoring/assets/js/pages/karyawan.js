@@ -19,18 +19,6 @@ const employeePayBadge = status => { const [label, tone] = EMPLOYEE_PAY_STATUS[s
 // Pembayaran tanpa tanggal tetap ditampilkan nominalnya (sama dengan aturan simpan di server).
 const employeePaid = r => r.tanggal_bayar || r.jumlah_bayar ? employeeCurrency.format(r.jumlah_bayar) : "-";
 
-async function employeeApi(path) {
-    const headers = employeeAuthHeaders();
-    if (!headers) return null;
-    try {
-        const data = await apiGet(path, { headers });
-        return employeeAuthHeaders() ? data : null;   // sudah keluar saat request berjalan: buang datanya
-    } catch (error) {
-        if (error.message.startsWith("HTTP 401")) { logoutEmployee("expired"); return null; }
-        if (error instanceof TypeError) { logoutEmployee("offline"); return null; }   // fetch gagal = koneksi putus
-        throw error;
-    }
-}
 // Dipanggil saat keluar: hapus data pribadi dari halaman dan memori.
 function clearEmployeeData() {
     employeeRequestId++;   // respons yang masih berjalan diabaikan
@@ -74,7 +62,7 @@ async function loadEmployeeMeta() {
     document.getElementById("employeePeriodLabel").textContent = meta.bulan;
     document.querySelectorAll(".employee-summary-period").forEach(el => { el.textContent = meta.bulan; });
     employeeBusinessNames = meta.businesses;
-    Object.entries(EMPLOYEE_SUMMARY_CARDS).forEach(([status, id]) => { document.getElementById(id).textContent = meta.summary[status].toLocaleString("id-ID"); });
+    Object.entries(EMPLOYEE_SUMMARY_CARDS).forEach(([status, id]) => { document.getElementById(id).innerHTML = `<span class="block text-base font-semibold">Total</span><span class="block">${meta.summary[status].toLocaleString("id-ID")}</span>`; });
     employeeCurrentPage = 1;
     loadEmployees();
 }
@@ -152,7 +140,7 @@ async function loadEmployees() {
     const bulan = document.getElementById("employeeMonthFilter").value;
     if (!bulan) return;
     const requestId = ++employeeRequestId;
-    const params = new URLSearchParams({
+    const params = {
         bulan,
         q: document.getElementById("employeeSearchInput").value.trim(),
         status: document.getElementById("employeeStatusFilter").value,
@@ -162,10 +150,10 @@ async function loadEmployees() {
         bu: document.getElementById("employeeBusinessFilter").dataset.selectedBusiness || "",
         page: employeeCurrentPage,
         size: employeePageSize,
-    });
+    };
     let data;
     try {
-        data = await employeeApi(`/api/karyawan?${params}`);
+        data = await employeeApi("/api/karyawan/search", params);
     } catch (error) {
         if (requestId === employeeRequestId) showEmployeeError(error);
         return;
@@ -179,7 +167,7 @@ function renderEmployeeTable(total) {
     const pages = Math.max(1, Math.ceil(total / employeePageSize));
     const start = (employeeCurrentPage - 1) * employeePageSize;
     document.getElementById("employeeTableBody").innerHTML = employeeRows.length ? employeeRows.map((r, i) => `<tr>
-        <td class="text-center">${start+i+1}</td><td>${escapeHtml(r.nama_bu)}</td><td>${escapeHtml(r.nama_peserta)}</td>
+        <td>${start+i+1}</td><td>${escapeHtml(r.nama_bu)}</td><td>${escapeHtml(r.nama_peserta)}</td>
         <td>${escapeHtml(r.nama_keluarga)}</td><td>${escapeHtml(r.status)}</td>
         <td class="text-center">${Number(r.bulan_menunggak).toLocaleString("id-ID")}</td>
         <td class="text-right">${employeeCurrency.format(r.nominal_tagihan)}</td>
@@ -215,7 +203,7 @@ async function openEmployeeDetail(index) {
     history.dataset.noka = r.noka_keluarga;
     let data;
     try {
-        data = await employeeApi(`/api/karyawan/riwayat?${new URLSearchParams({ noka: r.noka_keluarga, bulan: r.bulan })}`);
+        data = await employeeApi("/api/karyawan/riwayat", { noka: r.noka_keluarga, bulan: r.bulan });
     } catch (error) {
         data = { error };
     }

@@ -14,7 +14,7 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill
 
 from ..config import MONTHS
-from .normalize import normalize_kode, normalize_month, normalize_name, parse_amount
+from .normalize import amount_error, like_pattern, normalize_kode, normalize_month, normalize_name, parse_amount, parse_number
 
 COLUMNS = {
     "kode_bu": "kode bu",
@@ -77,6 +77,41 @@ def _display(value: str | None) -> str | None:
         return value
 
 
+def _number_or_raw(value: Any) -> Any:
+    """Angka dari file; teks yang bukan angka diteruskan apa adanya supaya ditolak _row_problems, bukan jadi 0."""
+    number = parse_number(value)
+    return value if number is None else number
+
+
+def _row_problems(bulan: str, kode: str, noka: str, menunggak: Any, tagihan: Any, tanggal_iso: str | None, jumlah: Any) -> list[str]:
+    """Aturan isi satu baris, untuk upload admin, workspace, dan import terminal. Tanggal bayar selalu di bulan tagihnya."""
+    problems = [amount_error(value, label) for value, label in (
+        (menunggak, "Bulan Menunggak"), (tagihan, "Sisa Tagihan Aktif"), (jumlah, "Jumlah Bayar"),
+    )]
+    if not (kode.isdigit() and len(kode) == 8):
+        problems.append(f"Kode BU harus 8 digit angka ({kode[:40]}).")
+    if not (noka.isdigit() and len(noka) == 13):
+        problems.append(f"Noka Peserta/Keluarga harus 13 digit angka ({noka[:40]}).")
+    if tanggal_iso:
+        try:
+            month = date.fromisoformat(tanggal_iso).month
+        except ValueError:
+            problems.append(f"Tanggal Bayar harus berformat dd/mm/yyyy ({tanggal_iso[:40]}).")
+        else:
+            if MONTHS[month - 1] != bulan:
+                problems.append(f"Tanggal Bayar {tanggal_iso} di luar bulan tagih {bulan}.")
+    return [problem for problem in problems if problem]
+
+
+def validate_rows(rows: list[tuple]) -> list[str]:
+    """Baris hasil read_workbook (ROW_FIELDS), untuk import terminal yang tidak lewat _clean."""
+    return [
+        f"Baris {position} ({row[0]}, {row[6]}): {problem}"
+        for position, row in enumerate(rows, start=1)
+        for problem in _row_problems(row[0], row[2], row[6], row[9], row[10], row[11], row[12])
+    ]
+
+
 def _periode(value: Any) -> tuple[str, str] | None:
     if isinstance(value, (date, datetime)):
         name = MONTHS[value.month - 1]
@@ -112,9 +147,9 @@ def read_workbook(path: Any) -> list[tuple]:
                     _noka(row[index["noka_peserta"]]), normalize_name(row[index["nama_peserta"]]),
                     noka_keluarga, normalize_name(row[index["nama_keluarga"]]),
                     normalize_name(row[index["status"]]),
-                    parse_amount(row[index["bulan_menunggak"]]), parse_amount(row[index["nominal_tagihan"]]),
+                    _number_or_raw(row[index["bulan_menunggak"]]), _number_or_raw(row[index["nominal_tagihan"]]),
                     _iso(tanggal.date() if isinstance(tanggal, datetime) else tanggal),
-                    parse_amount(jumlah) if jumlah is not None else None,
+                    _number_or_raw(jumlah) if jumlah is not None else None,
                 ))
         return parsed
     finally:
@@ -193,18 +228,28 @@ def _clean(bulan: str, items: list[dict[str, Any]]) -> tuple[list[tuple], list[s
             try:
                 tanggal = datetime.strptime(tanggal, DATE_FORMAT).date().isoformat()
             except ValueError:
-                errors.append(f"Baris {position}: Tanggal Bayar harus berformat dd/mm/yyyy, misalnya 30/01/2026.")
+                errors.append(f"Baris {position} (noka {noka}): Tanggal Bayar harus berformat dd/mm/yyyy, misalnya 30/01/2026.")
                 continue
+        kode = normalize_kode(item.get("kode_bu"))
+        problems = _row_problems(bulan, kode, noka, item.get("bulan_menunggak"), item.get("nominal_tagihan"), tanggal, item.get("jumlah_bayar"))
+        if problems:
+            errors += [f"Baris {position} (noka {noka}): {problem}" for problem in problems]
+            continue
         periode = normalize_name(item.get("periode"))
         cleaned.append((
             bulan, periode if normalize_month(periode) == bulan else bulan,
-            normalize_kode(item.get("kode_bu")), normalize_name(item.get("nama_bu")),
+            kode, normalize_name(item.get("nama_bu")),
             _noka(item.get("noka_peserta")), normalize_name(item.get("nama_peserta")),
             noka, normalize_name(item.get("nama_keluarga")), normalize_name(item.get("status")),
             parse_amount(item.get("bulan_menunggak")), parse_amount(item.get("nominal_tagihan")),
             tanggal, parse_amount(item.get("jumlah_bayar")),
         ))
     return cleaned, errors
+
+
+def row_errors(bulan: str, items: list[dict[str, Any]]) -> list[str]:
+    """Dicek sebelum backup, supaya percobaan yang pasti ditolak tidak menggeser file backup lama."""
+    return _clean(bulan, items)[1][:50]
 
 
 def import_month(conn: sqlite3.Connection, bulan: str, items: list[dict[str, Any]], replace: bool, source: str) -> dict[str, Any]:
@@ -308,8 +353,8 @@ def employee_page(
     """bayar: salah satu STATUS_BAYAR. sort: kunci SORT_COLUMNS."""
     where, params = ["k.bulan = ?"], [bulan]
     if q:
-        where.append("(" + " OR ".join(f"k.{column} LIKE ?" for column in SEARCH_COLUMNS) + ")")
-        params += [f"%{q}%"] * len(SEARCH_COLUMNS)
+        where.append("(" + " OR ".join(f"k.{column} LIKE ? ESCAPE '\\'" for column in SEARCH_COLUMNS) + ")")
+        params += [like_pattern(q)] * len(SEARCH_COLUMNS)
     if status:
         where.append("k.status = ? COLLATE NOCASE")
         params.append(status)
@@ -358,11 +403,16 @@ def payment_history(conn: sqlite3.Connection, noka_keluarga: str, bulan: str) ->
 
 if __name__ == "__main__":
     from ..db import init_db, transaction
+    from .backup import backup_db
 
     if len(sys.argv) != 2:
         sys.exit("Pakai: python -m backend.services.karyawan Data/Karyawan.xlsx")
     init_db()
     parsed = read_workbook(sys.argv[1])
+    problems = validate_rows(parsed)
+    if problems:
+        sys.exit("Data lama tidak diubah. Perbaiki dulu:\n" + "\n".join(problems[:50]))
+    backup_db("sebelum-ganti")
     with transaction() as conn:
         result = import_rows(conn, parsed, sys.argv[1])
     print(f"{result['written']} baris karyawan disimpan ({', '.join(result['months'])}); {result['deleted']} baris lama diganti.")

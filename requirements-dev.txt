@@ -1,0 +1,3 @@
+# Hanya untuk test (TestClient FastAPI); tidak dipasang di server.
+-r requirements.txt
+httpx2==2.16.0

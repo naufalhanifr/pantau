@@ -6,7 +6,7 @@
 }
 
 #businessDetailHistory td:nth-child(3) {
-  color: #047857 !important;
+  color: var(--pantau-green-dark) !important;
 }
 
 #businessDetailHistory td:nth-child(4) {

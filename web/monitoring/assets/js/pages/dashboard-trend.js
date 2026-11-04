@@ -39,7 +39,7 @@ function renderTrendChart() {
     if (chartTrendInstance) chartTrendInstance.destroy();
     const { year, search, selectedMonth, latestAvailableMonth, start, end, months } = trendRange();
     const totals = months.map((_, idx) => {
-        const rows = getDemoRows(start + idx, year, search);
+        const rows = getMonthRows(start + idx, year, search);
         if (!rows.length) return {tagihan: null, bayar: null, sisa: null};
         const tagihan = rows.reduce((sum, r) => sum + Number(r.tagihan || 0), 0);
         const bayar = rows.reduce((sum, r) => sum + Number(r.bayar || 0), 0);

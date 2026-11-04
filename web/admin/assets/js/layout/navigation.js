@@ -1,5 +1,5 @@
 // Navigasi menu admin: setiap jenis data (Tagihan, Pembayaran) punya sub menu Upload, Workspace, Riwayat.
-const ADMIN_JENIS = { tagihan: "Tagihan", pembayaran: "Pembayaran", karyawan: "Karyawan" };
+const ADMIN_JENIS = { tagihan: "Tagihan", pembayaran: "Pembayaran", karyawan: "Karyawan", ppu_pn: "PPU PN" };
 let activeAdminPage = "upload";
 let activeAdminJenis = "tagihan";
 

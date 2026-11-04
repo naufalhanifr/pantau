@@ -1,9 +1,9 @@
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from pydantic import BaseModel, Field
 
-from ..auth import check_login, issue_token, require_karyawan
+from ..auth import check_login, issue_token, require_karyawan, revoke_token
 from ..config import KARYAWAN_IDLE_SECONDS, KARYAWAN_PASSWORD, MONTHS
 from ..db import connect
 from ..services import karyawan
@@ -16,6 +16,24 @@ class LoginBody(BaseModel):
     password: str
 
 
+# Nama dan No. JKN lewat body POST, bukan query string: URL tercatat di log nginx.
+class HistoryBody(BaseModel):
+    noka: str
+    bulan: str
+
+
+class SearchBody(BaseModel):
+    bulan: str
+    q: str = ""
+    status: str = ""
+    bu: str = ""
+    bayar: Literal["", "lunas", "nyicil", "belum"] = ""
+    sort: str = ""
+    dir: Literal["asc", "desc"] = "asc"
+    page: int = Field(1, ge=1)
+    size: int = Field(10, ge=1, le=100)
+
+
 @router.post("/api/karyawan/login")
 def login(body: LoginBody, request: Request):
     check_login(request, "karyawan", body.password, KARYAWAN_PASSWORD)
@@ -26,6 +44,12 @@ def login(body: LoginBody, request: Request):
 def refresh():
     """Perpanjang sesi 30 menit lagi; dipanggil browser hanya selama pengguna aktif."""
     return {"token": issue_token("karyawan", KARYAWAN_IDLE_SECONDS)}
+
+
+@api.post("/logout")
+def logout(authorization: str = Header(default="")):
+    revoke_token(authorization)
+    return {"ok": True}
 
 
 @api.get("/meta")
@@ -42,37 +66,27 @@ def meta(bulan: str = ""):
         conn.close()
 
 
-@api.get("/riwayat")
-def history(noka: str, bulan: str):
-    if bulan not in MONTHS:
-        raise HTTPException(status_code=422, detail=f"Bulan tidak dikenal: {bulan}")
+@api.post("/riwayat")
+def history(body: HistoryBody):
+    if body.bulan not in MONTHS:
+        raise HTTPException(status_code=422, detail=f"Bulan tidak dikenal: {body.bulan}")
     conn = connect()
     try:
-        return {"rows": karyawan.payment_history(conn, noka.strip(), bulan)}
+        return {"rows": karyawan.payment_history(conn, body.noka.strip(), body.bulan)}
     finally:
         conn.close()
 
 
-@api.get("")
-def employees(
-    bulan: str,
-    q: str = "",
-    status: str = "",
-    bu: str = "",
-    bayar: Literal["", "lunas", "nyicil", "belum"] = "",
-    sort: str = "",
-    dir: Literal["asc", "desc"] = "asc",
-    page: int = Query(1, ge=1),
-    size: int = Query(10, ge=1, le=100),
-):
-    if bulan not in MONTHS:
-        raise HTTPException(status_code=422, detail=f"Bulan tidak dikenal: {bulan}")
-    if sort and sort not in karyawan.SORT_COLUMNS:
-        raise HTTPException(status_code=422, detail=f"Kolom urutan tidak dikenal: {sort}")
+@api.post("/search")
+def employees(body: SearchBody):
+    if body.bulan not in MONTHS:
+        raise HTTPException(status_code=422, detail=f"Bulan tidak dikenal: {body.bulan}")
+    if body.sort and body.sort not in karyawan.SORT_COLUMNS:
+        raise HTTPException(status_code=422, detail=f"Kolom urutan tidak dikenal: {body.sort}")
     conn = connect()
     try:
         return karyawan.employee_page(
-            conn, bulan, q.strip(), status.strip(), bu.strip(), page, size, bayar, sort, dir == "desc"
+            conn, body.bulan, body.q.strip(), body.status.strip(), body.bu.strip(), body.page, body.size, body.bayar, body.sort, body.dir == "desc"
         )
     finally:
         conn.close()

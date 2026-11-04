@@ -30,3 +30,30 @@
 .pantau-page > .pantau-page-head {
   margin-bottom: 8px;
 }
+
+/* Judul halaman dan deskripsinya: satu gaya di semua menu Monitoring dan Admin. */
+.pantau-page-head h2 {
+  margin: 0;
+  color: var(--pantau-ink);
+  font-size: clamp(1.5rem, 2.2vw, 1.875rem);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+/* Deskripsi 2 baris di layar laptop: 125-170 karakter, atau sampai 215 karakter di halaman dengan satu filter. */
+.pantau-page-head h2 + p {
+  max-width: 800px;
+  margin: 4px 0 0;
+  color: var(--pantau-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Halaman dengan filter: filter di tepi kanan, teks mengisi sisa ruang sampai 32px dari filter. */
+.pantau-page-head:has(.pantau-select-field) {
+  column-gap: 32px;
+}
+
+.pantau-page-head:has(.pantau-select-field) h2 + p {
+  max-width: none;
+}

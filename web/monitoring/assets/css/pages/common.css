@@ -1,16 +1,5 @@
 /* Ritme bersama halaman Dashboard dan Daftar Badan Usaha. */
 
-#dashboardPage h2,
-#monitoringPage h2 {
-  font-size: clamp(1.5rem,2.2vw,1.875rem);
-  line-height: 1.25;
-}
-
-#dashboardPage p.text-sm.text-slate-500,
-#monitoringPage p.text-sm.text-slate-500 {
-  line-height: 1.5;
-}
-
 #dashboardPage select,
 #dashboardPage input,
 #monitoringPage select,

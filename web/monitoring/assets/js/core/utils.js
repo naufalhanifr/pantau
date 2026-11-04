@@ -1,8 +1,4 @@
-// Utilitas format dan notifikasi per menu. MONTHS dan escapeHtml ada di /shared/common.js.
-function formatRupiah(number) {
-    return "Rp " + (Number(number) || 0).toLocaleString("id-ID");
-}
-
+// Notifikasi per menu. MONTHS, escapeHtml, dan formatRupiah ada di /shared/common.js.
 function dismissNotice(id) { document.getElementById(id)?.classList.add("hidden"); }
 
 function showError(message) {

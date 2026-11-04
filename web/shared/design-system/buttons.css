@@ -1,7 +1,7 @@
 /* Tombol: hover hijau global, tombol aktif, dan mode grafik. Ukuran tombol pagination ada di pagination.css. */
 
 .trend-mode-btn {
-  color: #64748b;
+  color: var(--pantau-muted);
   border: 1px solid transparent;
   transition: all .18s ease;
   white-space: nowrap;
@@ -25,11 +25,11 @@
 .trend-mode-btn.active:hover {
   color: #fff !important;
   background: linear-gradient(135deg, #0f766e, #059669) !important;
-  border-color: #047857 !important;
+  border-color: var(--pantau-green-dark) !important;
   filter: none !important;
 }
 
-@media(max-width:640px) {
+@media(max-width: 639px) {
   .trend-mode-switch {
     width: 100%;
   }
@@ -45,9 +45,9 @@
 
 /* Semua tombol lain (termasuk pagination dan mode grafik non-aktif) memakai hover hijau muda. */
 button:not(:disabled):not(.pantau-green-active):not(.pantau-sidebar-active):not(.trend-mode-btn.active):not(.pantau-dialog-confirm):hover {
-  background-color: #d1fae5 !important;
+  background-color: var(--pantau-green-soft) !important;
   border-color: #6ee7b7 !important;
-  color: #047857 !important;
+  color: var(--pantau-green-dark) !important;
   transition: background-color .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease;
 }
 
@@ -55,5 +55,60 @@ button:not(:disabled):not(.pantau-green-active):not(.pantau-sidebar-active):not(
 .trend-mode-btn[aria-disabled="true"]:hover {
   color: #94a3b8 !important;
   background: #f1f5f9 !important;
-  border-color: #e2e8f0 !important;
+  border-color: var(--pantau-border) !important;
+}
+
+/* Keluar dari sesi Karyawan, di samping filter bulan. */
+.pantau-session-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--pantau-border);
+  background: #fff;
+  color: var(--pantau-text);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Tab isi halaman: <div class="pantau-tabs" role="group" aria-label="…"><button class="pantau-tab pantau-green-active" aria-pressed="true">…</button>…</div> */
+.pantau-tabs {
+  display: flex;
+  gap: 4px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 4px;
+  border: 1px solid var(--pantau-border);
+  background: #f1f5f9;
+}
+
+.pantau-tab {
+  min-height: 44px;
+  padding: 8px 20px;
+  color: #475569;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pantau-tab i {
+  margin-right: 8px;
+}
+
+.pantau-tab:focus-visible {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+
+@media (max-width: 639px) {
+  .pantau-tabs {
+    width: 100%;
+  }
+  .pantau-tab {
+    flex: 1;
+    padding: 8px;
+  }
 }

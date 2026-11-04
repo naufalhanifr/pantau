@@ -1,0 +1,16 @@
+# Contoh unit systemd untuk /etc/systemd/system/pantau.service. Unit di server belum pernah masuk repo: bandingkan dulu
+# sebelum memakainya. Kata sandi dan kunci sesi ada di /etc/pantau.env (hanya bisa dibaca root, dipasang dari server.env).
+[Unit]
+Description=PANTAU
+After=network.target
+
+[Service]
+User=pantau
+WorkingDirectory=/var/www/pantau
+EnvironmentFile=/etc/pantau.env
+# Satu worker: hitungan gagal login dan token yang dicabut ada di memori proses. 127.0.0.1: hanya bisa diakses lewat nginx.
+ExecStart=/var/www/pantau/.venv/bin/uvicorn backend.main:app --host 127.0.0.1 --port 8000 --no-server-header
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

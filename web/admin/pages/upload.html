@@ -3,16 +3,16 @@
     <div>
       <span class="admin-page-kicker" data-jenis-label></span>
       <h2>Upload Excel</h2>
-      <p>Unggah file <span data-jenis-label></span> per bulan. Periksa dan perbaiki isinya di spreadsheet sebelum disimpan ke database.</p>
+      <p id="uploadIntro"></p>
     </div>
     <div class="admin-row-actions">
-      <button class="admin-btn admin-btn-ghost" type="button" onclick="downloadTemplate()"><i class="fa-solid fa-file-arrow-down"></i><span>Download template</span></button>
+      <button class="admin-btn admin-btn-ghost" id="uploadTemplateButton" type="button" onclick="downloadTemplate()"><i class="fa-solid fa-file-arrow-down"></i><span>Download template</span></button>
       <button class="admin-btn admin-btn-ghost" type="button" onclick="loadUploadMonths()"><i class="fa-solid fa-rotate"></i><span>Muat ulang</span></button>
     </div>
   </div>
 
   <div class="pantau-card">
-    <div class="admin-card-head">
+    <div class="pantau-card-head">
       <h3>Upload per Bulan</h3>
       <p>Pilih bulan lalu unggah file Excel bulan tersebut. Data <span data-jenis-label></span> bulan itu diganti dengan isi file.</p>
     </div>
@@ -33,7 +33,7 @@
   </div>
 
   <div class="pantau-card" id="uploadBulkCard">
-    <div class="admin-card-head">
+    <div class="pantau-card-head">
       <h3>Upload Banyak Bulan Sekaligus</h3>
       <p id="uploadBulkHint"></p>
     </div>

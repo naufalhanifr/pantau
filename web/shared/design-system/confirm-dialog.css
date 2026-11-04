@@ -9,7 +9,7 @@
   border: 1px solid #dbe5ef;
   border-radius: 8px;
   background: #fff;
-  color: #0f172a;
+  color: var(--pantau-ink);
   box-shadow: 0 24px 48px -16px rgba(15, 23, 42, .35), 0 4px 12px -4px rgba(15, 23, 42, .12);
 }
 .pantau-dialog[open] { animation: pantau-dialog-in .16s ease; }
@@ -26,11 +26,11 @@
   height: 44px;
   border-radius: 8px;
   background: #ecfdf5;
-  color: #059669;
+  color: var(--pantau-green);
   font-size: 19px;
 }
-.pantau-dialog-title { margin: 2px 0 6px; font-size: 17px; font-weight: 800; line-height: 1.35; }
-.pantau-dialog-message { margin: 0; color: #475569; font-size: 14px; line-height: 1.6; white-space: pre-line; overflow-wrap: anywhere; }
+.pantau-dialog-title { margin: 0 0 4px; color: var(--pantau-ink); font-size: 18px; font-weight: 700; line-height: 28px; }
+.pantau-dialog-message { margin: 0; color: var(--pantau-muted); font-size: 14px; line-height: 20px; white-space: pre-line; overflow-wrap: anywhere; }
 
 .pantau-dialog-actions {
   display: flex;
@@ -38,7 +38,7 @@
   justify-content: flex-end;
   gap: 8px;
   padding: 14px 22px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--pantau-border);
   background: #f8fafc;
 }
 .pantau-dialog-btn {
@@ -48,16 +48,16 @@
   gap: 8px;
   min-height: 44px;
   padding: 0 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--pantau-border);
   border-radius: 8px;
   background: #fff;
-  color: #334155;
+  color: var(--pantau-text);
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
 }
-.pantau-dialog-btn:focus-visible { outline: 2px solid #059669; outline-offset: 2px; }
-.pantau-dialog-confirm { border-color: #047857; background: linear-gradient(135deg, #0f766e, #059669); color: #fff; box-shadow: 0 4px 12px rgba(5, 150, 105, .18); }
+.pantau-dialog-btn:focus-visible { outline: 2px solid var(--pantau-green); outline-offset: 2px; }
+.pantau-dialog-confirm { border-color: var(--pantau-green-dark); background: linear-gradient(135deg, #0f766e, var(--pantau-green)); color: #fff; box-shadow: 0 4px 12px rgba(5, 150, 105, .18); }
 .pantau-dialog-confirm:hover { filter: brightness(.94); }
 
 /* Varian bahaya: hapus data, buang perubahan. */

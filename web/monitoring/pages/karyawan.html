@@ -1,7 +1,7 @@
 <section class="hidden" id="employeesPage">
   <div id="employeeLoginPanel" class="pantau-login-card max-w-full mx-auto mb-6">
     <div class="pantau-login-icon"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></div>
-    <h2>Masuk Data Karyawan</h2>
+    <h2 id="employeeLoginTitle">Masuk Data Karyawan</h2>
     <p class="pantau-login-description">Masukkan kata sandi untuk mengakses data karyawan.</p>
     <form id="employeeLoginForm" autocomplete="off" onsubmit="return employeeLogin(event)">
       <label class="pantau-login-label" for="employeeLoginPassword">Kata sandi</label>
@@ -15,49 +15,52 @@
     </form>
     <div class="pantau-login-footer"><i class="fa-solid fa-shield-halved"></i><span>Data Internal BPJS Kesehatan KC Bekasi</span></div>
   </div>
-  <div id="employeesProtectedContent" class="pantau-page hidden" data-karyawan-protected>
+  <div id="employeesProtectedContent" class="pantau-page hidden" data-karyawan-protected="employees">
     <div class="pantau-page-head flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
       <div class="min-w-0 flex-1">
-        <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Daftar Karyawan Periode <span id="employeePeriodLabel"></span></h2>
-        <p class="text-sm text-slate-500 mt-1">Daftar peserta dan anggota keluarga yang tercantum pada file sumber badan usaha.</p>
+        <h2>Daftar Karyawan Periode <span id="employeePeriodLabel"></span></h2>
+        <p>Daftar peserta dan anggota keluarga yang tercantum pada file sumber badan usaha.</p>
       </div>
       <!-- Opsi bulan diisi karyawan.js dari bulan tagih yang ada di database. -->
-      <label class="pantau-select-field shrink-0"><span class="pantau-select-field-label">Bulan tagih</span>
-        <select class="pantau-select" id="employeeMonthFilter" aria-label="Bulan tagih" onchange="loadEmployeeMeta()"></select>
-      </label>
+      <div class="flex items-end gap-2 shrink-0">
+        <label class="pantau-select-field pantau-select-field-titled"><span class="pantau-select-field-label">Bulan tagih</span>
+          <select class="pantau-select" id="employeeMonthFilter" aria-label="Bulan tagih" onchange="loadEmployeeMeta()"></select>
+        </label>
+        <button class="pantau-session-logout" type="button" onclick="karyawanLogout()"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i><span>Keluar</span></button>
+      </div>
     </div>
     <!-- Ringkasan status bayar bulan terpilih; hanya berubah saat bulan tagih diganti, tidak ikut filter tabel. Diisi karyawan.js. -->
     <div class="grid gap-4 items-stretch w-full" id="employeeSummaryCards">
       <div class="summary-card pantau-card relative overflow-hidden group min-w-0">
         <div class="flex items-center gap-2 min-h-8">
           <div class="w-8 h-8 shrink-0 bg-emerald-600 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i></div>
-          <p class="text-sm font-semibold uppercase tracking-wide text-slate-500">Total Peserta Bayar</p>
+          <p class="pantau-stat-label">Total Peserta Bayar</p>
         </div>
-        <h3 class="text-2xl lg:text-3xl font-extrabold text-slate-900 mt-5 leading-tight" id="employeeCardLunas">0</h3>
-        <div class="flex items-center gap-1.5 mt-2 text-xs text-emerald-700 font-medium"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><span>Bayar lunas periode <span class="employee-summary-period"></span></span></div>
+        <h3 class="pantau-stat-value" id="employeeCardLunas">0</h3>
+        <div class="pantau-stat-note text-emerald-700"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><span>Bayar lunas periode <span class="employee-summary-period"></span></span></div>
       </div>
       <div class="summary-card pantau-card relative overflow-hidden group min-w-0">
         <div class="flex items-center gap-2 min-h-8">
           <div class="w-8 h-8 shrink-0 bg-amber-500 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-coins" aria-hidden="true"></i></div>
-          <p class="text-sm font-semibold uppercase tracking-wide text-slate-500">Total Peserta Nyicil</p>
+          <p class="pantau-stat-label">Total Peserta Nyicil</p>
         </div>
-        <h3 class="text-2xl lg:text-3xl font-extrabold text-slate-900 mt-5 leading-tight" id="employeeCardNyicil">0</h3>
-        <div class="flex items-center gap-1.5 mt-2 text-xs text-amber-700 font-medium"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><span>Bayar nyicil periode <span class="employee-summary-period"></span></span></div>
+        <h3 class="pantau-stat-value" id="employeeCardNyicil">0</h3>
+        <div class="pantau-stat-note text-amber-700"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><span>Bayar nyicil periode <span class="employee-summary-period"></span></span></div>
       </div>
       <div class="summary-card pantau-card relative overflow-hidden group min-w-0">
         <div class="flex items-center gap-2 min-h-8">
           <div class="w-8 h-8 shrink-0 bg-rose-500 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i></div>
-          <p class="text-sm font-semibold uppercase tracking-wide text-slate-500">Total Peserta Belum Bayar</p>
+          <p class="pantau-stat-label">Total Peserta Belum Bayar</p>
         </div>
-        <h3 class="text-2xl lg:text-3xl font-extrabold text-slate-900 mt-5 leading-tight" id="employeeCardBelum">0</h3>
-        <div class="flex items-center gap-1.5 mt-2 text-xs text-rose-600 font-medium"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><span>Belum ada pembayaran periode <span class="employee-summary-period"></span></span></div>
+        <h3 class="pantau-stat-value" id="employeeCardBelum">0</h3>
+        <div class="pantau-stat-note text-rose-600"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><span>Belum ada pembayaran periode <span class="employee-summary-period"></span></span></div>
       </div>
     </div>
     <div class="pantau-card overflow-hidden">
-      <div class="mb-4 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="pantau-card-head flex flex-col md:flex-row justify-between md:items-start gap-4">
         <div class="min-w-0">
-          <h3 class="text-lg font-bold text-slate-900">Data Karyawan</h3>
-          <p class="text-sm text-slate-500" id="employeeCountLabel">Menyiapkan data karyawan...</p>
+          <h3>Data Karyawan</h3>
+          <p id="employeeCountLabel">Menyiapkan data karyawan...</p>
         </div>
         <div id="employeeFilters" aria-label="Filter data karyawan">
           <!-- Combobox badan usaha: bisa diketik untuk mencari, daftar opsi dirender karyawan.js. -->

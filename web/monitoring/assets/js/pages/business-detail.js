@@ -9,7 +9,7 @@ function openBusinessDetail(kodeBU) {
     const endMonth = Number(filters.month);
     const monthlyRows = [];
     for (let month = startMonth; month <= endMonth; month++) {
-        const row = getDemoRows(month, Number(filters.year), "").find(item => String(item.kode_bu) === String(kodeBU));
+        const row = getMonthRows(month, Number(filters.year), "").find(item => String(item.kode_bu) === String(kodeBU));
         if (row) monthlyRows.push(row);
     }
     // Ringkasan memakai aturan yang sama dengan baris tabel: tagihan & sisa posisi bulan akhir, pembayaran dijumlah.

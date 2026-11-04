@@ -2,7 +2,7 @@ import sqlite3
 from typing import Any, Iterable
 
 from ..config import MONTHS
-from .normalize import normalize_kode, normalize_name, parse_amount
+from .normalize import amount_error, normalize_kode, normalize_name, parse_amount
 
 JENIS_TABLE = {"tagihan": "tagihan", "pembayaran": "pembayaran"}
 
@@ -13,7 +13,7 @@ WITH keys AS (
     SELECT kode_bu, bulan FROM pembayaran WHERE bulan = :bulan
 )
 SELECT k.kode_bu,
-       COALESCE(p.nama_bu, '') AS nama_bu,
+       COALESCE(t.nama_bu, b.nama_bu, p.nama_bu, '') AS nama_bu,
        k.bulan,
        COALESCE(t.peserta, 0) AS peserta_tagihan,
        COALESCE(t.nominal, 0) AS tagihan,
@@ -47,7 +47,7 @@ def month_rows(conn: sqlite3.Connection, jenis: str, bulan: str) -> list[dict[st
     """Baris satu jenis (tagihan/pembayaran) pada satu bulan untuk workspace admin."""
     table = JENIS_TABLE[jenis]
     sql = (
-        "SELECT t.kode_bu, COALESCE(p.nama_bu, '') AS nama_bu, t.peserta, t.nominal "
+        "SELECT t.kode_bu, COALESCE(t.nama_bu, p.nama_bu, '') AS nama_bu, t.peserta, t.nominal "
         f"FROM {table} t LEFT JOIN perusahaan p ON p.kode_bu = t.kode_bu "
         "WHERE t.bulan = ? ORDER BY t.nominal DESC, t.kode_bu"
     )
@@ -66,6 +66,9 @@ def month_summary(conn: sqlite3.Connection) -> list[dict[str, Any]]:
         karyawan = conn.execute(
             "SELECT COUNT(*) AS n, COALESCE(SUM(nominal_tagihan), 0) AS total FROM karyawan WHERE bulan = ?", (bulan,)
         ).fetchone()
+        ppu = conn.execute(
+            "SELECT COUNT(*) AS n, COALESCE(SUM(saldo), 0) AS total FROM ppu_pn WHERE bulan = ?", (bulan,)
+        ).fetchone()
         summary.append({
             "bulan": bulan,
             "karyawan_rows": karyawan["n"],
@@ -74,6 +77,8 @@ def month_summary(conn: sqlite3.Connection) -> list[dict[str, Any]]:
             "tagihan_total": tagihan["total"],
             "bayar_rows": bayar["n"],
             "bayar_total": bayar["total"],
+            "ppu_rows": ppu["n"],
+            "ppu_total": ppu["total"],
         })
     return summary
 
@@ -89,11 +94,13 @@ def _upsert_company(conn: sqlite3.Connection, kode: str, nama: str) -> None:
         conn.execute("INSERT OR IGNORE INTO perusahaan (kode_bu, nama_bu) VALUES (?, ?)", (kode, kode))
 
 
-def _upsert_amount(conn: sqlite3.Connection, table: str, kode: str, bulan: str, peserta: int, nominal: int) -> None:
+def _upsert_amount(conn: sqlite3.Connection, table: str, kode: str, nama: str, bulan: str, peserta: int, nominal: int) -> None:
+    # Nama ikut disimpan per bulan: BU yang berganti nama tidak mengubah tampilan bulan-bulan sebelumnya.
     conn.execute(
-        f"INSERT INTO {table} (kode_bu, bulan, periode, peserta, nominal) VALUES (?, ?, ?, ?, ?) "
-        "ON CONFLICT(kode_bu, bulan) DO UPDATE SET peserta = excluded.peserta, nominal = excluded.nominal",
-        (kode, bulan, bulan, peserta, nominal),
+        f"INSERT INTO {table} (kode_bu, bulan, periode, peserta, nominal, nama_bu) VALUES (?, ?, ?, ?, ?, ?) "
+        "ON CONFLICT(kode_bu, bulan) DO UPDATE SET peserta = excluded.peserta, nominal = excluded.nominal, "
+        "nama_bu = COALESCE(excluded.nama_bu, nama_bu)",
+        (kode, bulan, bulan, peserta, nominal, nama or None),
     )
 
 
@@ -108,6 +115,13 @@ def _clean_rows(rows: Iterable[dict[str, Any]]) -> tuple[list[dict[str, Any]], l
             errors.append(f"Baris {position}: KODE BU {kode} duplikat.")
             continue
         seen.add(kode)
+        if not (kode.isdigit() and len(kode) == 8):
+            errors.append(f"Baris {position}: KODE BU harus 8 digit angka ({kode[:40]}).")
+            continue
+        problems = [amount_error(row.get(field), label) for field, label in (("peserta", "Peserta"), ("nominal", "Nominal"))]
+        if any(problems):
+            errors += [f"Baris {position} (KODE BU {kode}): {problem}" for problem in problems if problem]
+            continue
         cleaned.append({
             "kode_bu": kode,
             "nama_bu": normalize_name(row.get("nama_bu")),
@@ -115,6 +129,11 @@ def _clean_rows(rows: Iterable[dict[str, Any]]) -> tuple[list[dict[str, Any]], l
             "nominal": parse_amount(row.get("nominal")),
         })
     return cleaned, errors
+
+
+def row_errors(rows: list[dict[str, Any]]) -> list[str]:
+    """Dicek sebelum backup, supaya percobaan yang pasti ditolak tidak menggeser file backup lama."""
+    return _clean_rows(rows)[1][:50]
 
 
 def import_rows(
@@ -129,7 +148,7 @@ def import_rows(
     deleted = conn.execute(f"DELETE FROM {table} WHERE bulan = ?", (bulan,)).rowcount if replace else 0
     for row in cleaned:
         _upsert_company(conn, row["kode_bu"], row["nama_bu"])
-        _upsert_amount(conn, table, row["kode_bu"], bulan, row["peserta"], row["nominal"])
+        _upsert_amount(conn, table, row["kode_bu"], row["nama_bu"], bulan, row["peserta"], row["nominal"])
 
     conn.execute(
         "INSERT INTO import_log (action, source, jenis, bulan, rows_written, rows_deleted) VALUES (?, ?, ?, ?, ?, ?)",
@@ -154,7 +173,7 @@ def save_workspace(
 
     for row in cleaned:
         _upsert_company(conn, row["kode_bu"], row["nama_bu"])
-        _upsert_amount(conn, table, row["kode_bu"], bulan, row["peserta"], row["nominal"])
+        _upsert_amount(conn, table, row["kode_bu"], row["nama_bu"], bulan, row["peserta"], row["nominal"])
 
     conn.execute(
         "INSERT INTO import_log (action, source, jenis, bulan, rows_written, rows_deleted) VALUES (?, ?, ?, ?, ?, ?)",

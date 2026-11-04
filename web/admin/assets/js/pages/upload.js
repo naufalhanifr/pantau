@@ -10,6 +10,11 @@ const UPLOAD_JENIS = {
         // File setahun ±150 ribu baris terlalu berat untuk ditinjau sekaligus di browser: hanya upload per bulan.
         monthOnly: true,
     },
+    // Berkas sumber berformat tetap (sheet Gabungan): langsung disimpan setelah konfirmasi, tanpa grid tinjauan, template, dan workspace.
+    ppu_pn: {
+        prefix: "ppu", count: "Jumlah Peserta", fixed: true, monthOnly: true, direct: true,
+        intro: "Upload file PPU PN dari sumbernya (sheet Gabungan), satu file untuk satu bulan. Data bulan itu diganti setelah kamu konfirmasi.",
+    },
 };
 const UPLOAD_DEFAULT_HINTS = {
     bulk: "File dengan satu sheet per bulan. Bulan dibaca dari nama sheet atau kolom Periode. Sheet kosong dilewati, jadi template satu tahun bisa diisi sebagian saja.",
@@ -35,6 +40,8 @@ function initUpload() {
     if (uploadJenis && uploadJenis !== activeAdminJenis) resetUpload();
     const config = UPLOAD_JENIS[activeAdminJenis];
     document.getElementById("uploadCountHeader").textContent = config.count;
+    document.getElementById("uploadIntro").textContent = config.intro || `Unggah file ${ADMIN_JENIS[activeAdminJenis]} per bulan. Periksa dan perbaiki isinya di spreadsheet sebelum disimpan ke database.`;
+    document.getElementById("uploadTemplateButton").classList.toggle("hidden", Boolean(config.direct));
     document.getElementById("uploadBulkCard").classList.toggle("hidden", Boolean(config.monthOnly));
     document.getElementById("uploadBulkHint").textContent = config.bulk || UPLOAD_DEFAULT_HINTS.bulk;
     document.getElementById("uploadFormatHint").textContent = config.format || UPLOAD_DEFAULT_HINTS.format;
@@ -65,7 +72,7 @@ async function loadUploadMonths() {
               <td class="text-right">${formatRupiah(m[`${prefix}_total`])}</td>
               <td><div class="admin-row-actions">
                 <button class="admin-btn admin-btn-ghost" type="button" onclick="openMonthUpload('${m.bulan}')"><i class="fa-solid fa-upload"></i><span>${rows ? "Ganti" : "Upload"}</span></button>
-                <button class="admin-btn admin-btn-ghost" type="button" onclick="openWorkspaceMonth('${m.bulan}')" ${rows ? "" : "disabled"}><i class="fa-solid fa-table-cells"></i><span>Workspace</span></button>
+                ${UPLOAD_JENIS[jenis].direct ? "" : `<button class="admin-btn admin-btn-ghost" type="button" onclick="openWorkspaceMonth('${m.bulan}')" ${rows ? "" : "disabled"}><i class="fa-solid fa-table-cells"></i><span>Workspace</span></button>`}
               </div></td>
             </tr>`;
         }).join("");
@@ -118,6 +125,7 @@ function initUploadDropzone() {
 async function handleUploadFile(file, month = null) {
     uploadPendingMonth = null;
     if (!file) return;
+    if (UPLOAD_JENIS[activeAdminJenis].direct) return uploadDirect(file, month);
     const zone = document.getElementById("uploadDropzone");
     const label = document.getElementById("uploadFileName");
     zone.classList.add("is-loading");
@@ -153,6 +161,49 @@ async function handleUploadFile(file, month = null) {
     } finally {
         zone.classList.remove("is-loading");
         document.getElementById("uploadFile").value = "";
+        document.getElementById("uploadMonthFile").value = "";
+    }
+}
+
+// Jumlah baris bulan-bulan yang ada di database sekarang, untuk dibandingkan di dialog konfirmasi. {} bila gagal dimuat.
+async function existingRowCounts(jenis) {
+    try {
+        const { per_bulan } = await adminApi("/api/admin/summary");
+        return Object.fromEntries(per_bulan.map(m => [m.bulan, m[`${UPLOAD_JENIS[jenis].prefix}_rows`]]));
+    } catch {
+        return {};
+    }
+}
+
+// Satu baris per bulan: berapa yang diganti, dan peringatan bila isi file jauh lebih sedikit dari data sekarang.
+function replaceSummary(month, oldCount, newCount) {
+    if (!oldCount) return { text: `${month}: ${formatNumber(newCount)} baris baru.`, shrinks: false };
+    const shrinks = newCount < oldCount / 2;
+    return { text: `${month}: ${formatNumber(oldCount)} baris lama diganti ${formatNumber(newCount)} baris baru.${shrinks ? " Isi file jauh lebih sedikit, pastikan file sudah benar." : ""}`, shrinks };
+}
+
+async function uploadDirect(file, month) {
+    const send = simpan => {
+        const form = new FormData();
+        form.append("file", file);
+        return adminApi(`/api/admin/ppu-pn/upload?${new URLSearchParams({ bulan: month, simpan })}`, { method: "POST", form });
+    };
+    showToast(`Membaca ${file.name} untuk bulan ${month}...`, "info");
+    try {
+        const preview = await send(false);
+        const summary = replaceSummary(month, (await existingRowCounts("ppu_pn"))[month], preview.rows);
+        const mismatch = preview.bulan_file && preview.bulan_file !== month ? `\nNama file menyebut ${preview.bulan_file}, akan disimpan sebagai ${month}.` : "";
+        if (!(await pantauConfirm({
+            title: `Simpan PPU PN ${month}?`,
+            message: `File: ${file.name}\n${summary.text}\nTotal tunggakan: ${formatRupiah(preview.total)}.${mismatch}\nSalinan database dibuat otomatis sebelum diganti.`,
+            confirmText: "Simpan", tone: summary.shrinks || mismatch ? "danger" : "primary", icon: "fa-database",
+        }))) return;
+        const result = await send(true);
+        showToast(`PPU PN ${month} tersimpan: ${formatNumber(result.written)} baris, ${formatNumber(result.deleted)} baris lama diganti.`);
+        loadUploadMonths();
+    } catch (error) {
+        showToast(`Upload gagal: ${error.message}`, "error");
+    } finally {
         document.getElementById("uploadMonthFile").value = "";
     }
 }
@@ -282,12 +333,15 @@ async function saveUpload() {
     if (problems.length) return showToast(problems.join("\n"), "error");
 
     const label = ADMIN_JENIS[jenis];
+    const counts = await existingRowCounts(jenis);
+    const summaries = chosen.map(sheet => replaceSummary(sheet.bulan, replace ? counts[sheet.bulan] : 0, buildImportRows(sheet, jenis).rows.length));
     const action = replace ? "Seluruh data" : "Data";
     const effect = replace ? "diganti dengan isi file" : "diperbarui sesuai isi file";
     if (!(await pantauConfirm({
         title: `Simpan ${label} ke database?`,
-        message: `File: ${uploadFileName}\n${action} ${label.toLowerCase()} bulan ${months.join(", ")} akan ${effect}.`,
+        message: `File: ${uploadFileName}\n${action} ${label.toLowerCase()} bulan ${months.join(", ")} akan ${effect}.\n${summaries.map(item => item.text).join("\n")}${replace ? "\nSalinan database dibuat otomatis sebelum diganti." : ""}`,
         confirmText: "Simpan",
+        tone: summaries.some(item => item.shrinks) ? "danger" : "primary",
         icon: "fa-database",
     }))) return;
 

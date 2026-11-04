@@ -16,7 +16,7 @@
     const label=document.createElement('span'); label.className='pantau-native-select-label';
     const chevron=document.createElement('i'); chevron.className='fa-solid fa-chevron-down pantau-native-select-chevron'; chevron.setAttribute('aria-hidden','true');
     trigger.append(label,chevron);
-    // Varian dengan header: screen reader membaca "Dari bulan, Januari", bukan hanya nilainya.
+    // Varian filter: screen reader membaca "Dari bulan, Januari", bukan hanya nilainya.
     const header=select.closest('.pantau-select-field')?.querySelector('.pantau-select-field-label');
     if(header){header.id||=`pantau-select-header-${Math.random().toString(36).slice(2)}`;label.id=`${header.id}-value`;trigger.setAttribute('aria-labelledby',`${header.id} ${label.id}`);}
     const menu=document.createElement('div'); menu.className='pantau-native-select-menu pantau-dropdown-list hidden'; menu.setAttribute('role','listbox');

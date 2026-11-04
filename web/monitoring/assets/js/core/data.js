@@ -1,27 +1,35 @@
 // Data PANTAU dari /api/data dan agregasi per periode.
 // Database menyimpan bulan tanpa tahun: satu database = satu tahun. Ganti tahun: lihat README "Pergantian tahun".
-const PANTAU_YEAR = 2026;
+let PANTAU_YEAR = new Date().getFullYear();   // diganti nilai dari /api/data (PANTAU_YEAR di server)
 let PANTAU_DATA = [];
 let PANTAU_READY = false;
 let PANTAU_LATEST_MONTH = 0;   // bulan terakhir yang ada datanya (1-12), dibaca dari /api/data
 
+// Isi filter bulan hanya dengan bulan yang ada datanya. months: nomor bulan 1-12.
+function setMonthOptions(select, months) {
+    const current = select.value;
+    select.innerHTML = months.map(month => `<option value="${month}">${MONTHS[month - 1]}</option>`).join("");
+    select.value = current;
+}
+
 async function initializePantauData() {
     const result = await apiGet("/api/data");
     PANTAU_DATA = Array.isArray(result.data) ? result.data : [];
+    if (result.year) PANTAU_YEAR = result.year;
     PANTAU_READY = true;
     const availableMonths = [...new Set(PANTAU_DATA.map(row => Number(row.month)))].sort((a,b) => a-b);
     const latest = PANTAU_LATEST_MONTH = availableMonths.length ? Math.max(...availableMonths) : 0;
     ["globalStartMonth", "globalMonth", "monitorStartMonth", "monitorEndMonth"].forEach(id => {
         const select = document.getElementById(id);
         if (!select) return;
-        Array.from(select.options).forEach(option => { option.disabled = !availableMonths.includes(Number(option.value)); });
+        setMonthOptions(select, availableMonths);
     });
     ["globalStartMonth", "monitorStartMonth"].forEach(id => { const el=document.getElementById(id); if(el) el.value=String(availableMonths[0] || 1); });
     ["globalMonth", "monitorEndMonth"].forEach(id => { const el=document.getElementById(id); if(el) el.value=String(latest || 1); });
     return result;
 }
 
-function getDemoRows(month = Number(selectedFilters().month), year = Number(selectedFilters().year), search = selectedFilters().search) {
+function getMonthRows(month = Number(selectedFilters().month), year = Number(selectedFilters().year), search = selectedFilters().search) {
     if (!PANTAU_READY || Number(year) !== PANTAU_YEAR) return [];
     const q = String(search || "").trim().toLocaleLowerCase("id-ID");
     return PANTAU_DATA.filter(row => Number(row.month) === Number(month) &&
@@ -39,7 +47,7 @@ function getFilteredRows(menu = activePage) {
     // sedangkan pembayaran merupakan akumulasi dari bulan awal sampai bulan akhir.
     const byBusiness = new Map();
     for (let m = start; m <= end; m++) {
-        getDemoRows(m, Number(f.year), f.search).forEach(row => {
+        getMonthRows(m, Number(f.year), f.search).forEach(row => {
             const key = String(row.kode_bu);
             if (!byBusiness.has(key)) {
                 byBusiness.set(key, {
