@@ -1,17 +1,3 @@
-Always use the ponytail skill (full level) at the start of every session, unless the user says "stop ponytail" or "normal mode".
-
-Use the karpathy-guidelines skill when writing, reviewing, or refactoring code: keep changes small and surgical, state assumptions, and define success criteria before coding.
-
 ## Git
 - After committing, push straight to `main` (origin: https://github.com/naufalhanifr/pantau.git) without asking. No feature branches or PRs; the user works solo.
 - The repo must stay private. Before pushing, check: `curl -s -o /dev/null -w "%{http_code}" https://api.github.com/repos/naufalhanifr/pantau` (404 = private, 200 = public). If it is public, hold the push and warn. `gh` is not installed on the user's Mac.
-
-<!-- antislop:start -->
-## antislop
-For UI, copy, people, mobile layout, or code comments work, read these installed skill files directly (use these paths even if a same-named global skill exists):
-- Core filter, always on: `antislop`: `.claude/skills/antislop/SKILL.md`
-Before starting, follow the core's "Two Usage Modes" section in strict order: explicit session instruction first, then global preference, then ask. A session instruction always wins. For a resolved mode, say `antislop active: <mode> (session override).` or `antislop active: <mode> (global preference).` once before presenting findings or making edits, using the actual mode and source. Acknowledging the user's request without naming the source does not replace this notice.
-Only an explicit choice of antislop during or after selects a session mode. A request to review, audit, or avoid file edits does not select a mode; read the global preference in that case. Another skill's mode does not select antislop's mode.
-If the mode is unresolved, ask during/after and end the response; wait for the answer before any UI review, planning, or concept. For read-only tasks, put the active-mode notice only at the start of the final answer, never in progress messages. For editing tasks, announce before the first edit and omit it from the final answer.
-To update antislop later: `npx antislop-ai --update`, or run `npx antislop-ai` and pick Overwrite them.
-<!-- antislop:end -->
