@@ -1,7 +1,7 @@
 <!-- Menu PPU PN: SKPD > Satker > Karyawan, satu section dengan tiga tampilan (ppu-pn.js).
-     Login sama dengan Daftar Karyawan: kartu #employeeLoginPanel dipindah ke sini oleh showPage (navigation.js). -->
+     SKPD dan Satker terbuka tanpa login. Karyawan berisi nama orang: login sama dengan Daftar Karyawan,
+     kartu #employeeLoginPanel dipindah ke #ppuKaryawanView oleh showPage (navigation.js). -->
 <section class="hidden" id="ppuPage">
-  <div id="ppuProtectedContent" class="hidden" data-karyawan-protected>
     <div class="pantau-page" data-ppu-view="skpd">
       <div class="pantau-page-head">
         <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">SKPD PPU PN</h2>
@@ -47,7 +47,8 @@
       </div>
     </div>
 
-    <div class="pantau-page hidden" data-ppu-view="karyawan">
+    <div class="hidden" data-ppu-view="karyawan" id="ppuKaryawanView">
+    <div class="pantau-page hidden" data-karyawan-protected>
       <div class="pantau-page-head">
         <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Karyawan PPU PN</h2>
         <p class="text-sm text-slate-500 mt-1">Peserta dan anggota keluarganya, per Satker dan SKPD.</p>

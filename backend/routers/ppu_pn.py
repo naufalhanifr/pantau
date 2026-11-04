@@ -4,8 +4,8 @@ from ..auth import require_karyawan
 from ..db import connect
 from ..services import ppu_pn
 
-# Berisi nama peserta: login sama dengan Daftar Karyawan.
-api = APIRouter(prefix="/api/ppu-pn", dependencies=[Depends(require_karyawan)])
+# Ringkasan SKPD/Satker terbuka seperti Dashboard; daftar peserta berisi nama orang, jadi perlu login Daftar Karyawan.
+api = APIRouter(prefix="/api/ppu-pn")
 
 
 @api.get("/satker")
@@ -17,7 +17,7 @@ def satker():
         conn.close()
 
 
-@api.get("/peserta")
+@api.get("/peserta", dependencies=[Depends(require_karyawan)])
 def peserta(
     skpd: str = "",
     satker: str = "",

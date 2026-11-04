@@ -56,7 +56,7 @@ backend/                     FastAPI
   templating.py              penyusun HTML: <!-- @include file.html -->
   routers/monitoring.py      GET /, /api/data, /api/health
   routers/karyawan.py        POST /api/karyawan/login, GET /api/karyawan/meta, /api/karyawan (perlu token)
-  routers/ppu_pn.py          GET /api/ppu-pn/satker, /api/ppu-pn/peserta (token Daftar Karyawan)
+  routers/ppu_pn.py          GET /api/ppu-pn/satker (terbuka), /api/ppu-pn/peserta (token Daftar Karyawan)
   routers/admin.py           GET /admin, /api/admin/* (login, upload, import, records, history)
   services/excel.py          baca Excel + deteksi kolom/bulan/jenis
   services/records.py        query & simpan tagihan/pembayaran
@@ -125,7 +125,7 @@ Diisi lewat web admin menu **Karyawan** (Upload Excel per bulan, Workspace, Riwa
 
 ## Data PPU PN
 
-Menu **PPU PN** di monitoring (SKPD, Satker, Karyawan) memakai login yang sama dengan Daftar Karyawan.
+Menu **PPU PN** di monitoring: SKPD dan Satker terbuka tanpa login, Karyawan memakai login yang sama dengan Daftar Karyawan.
 Sumbernya sheet `Gabungan` di file `PPU PN sd <bulan> <tahun>.xlsx`: satu baris per peserta/keluarga dengan kolom `SKPD`, `Satker`, `nmpst`, `pisapst`.
 Disimpan di tabel `ppu_pn` (hanya SKPD, Satker, nama, status; nomor HP, email, dan alamat tidak disimpan). Belum ada upload lewat web admin; isi dari terminal:
 

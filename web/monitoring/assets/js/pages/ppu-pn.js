@@ -1,9 +1,10 @@
-// Menu PPU PN: SKPD > Satker > Karyawan. Data dari /api/ppu-pn lewat employeeApi (karyawan.js): login & sesi sama dengan Daftar Karyawan.
-// SKPD dan Satker dari satu ringkasan per Satker (dimuat sekali per login); daftar karyawan difilter dan dipaginasi server.
+// Menu PPU PN: SKPD > Satker > Karyawan, data dari /api/ppu-pn.
+// SKPD dan Satker terbuka: dari satu ringkasan per Satker (dimuat sekali). Karyawan berisi nama orang: lewat employeeApi
+// (karyawan.js), login & sesi sama dengan Daftar Karyawan; difilter dan dipaginasi server.
 let ppuSatkerRows = null;     // [{skpd, satker, peserta}]
 let ppuPesertaPage = 1;
 let ppuPesertaSize = 10;
-let ppuRequestId = 0;         // abaikan respons lama bila filter berubah cepat atau sudah keluar
+let ppuRequestId = 0;         // abaikan respons karyawan lama bila filter berubah cepat atau sudah keluar
 let ppuFilterTimer = null;
 const ppuById = id => document.getElementById(id);
 const ppuCount = n => Number(n).toLocaleString("id-ID");
@@ -13,38 +14,34 @@ const PPU_BODIES = ["ppuSkpdBody", "ppuSatkerBody", "ppuPesertaBody"];
 // Tombol aksi: pola tombol Detail di Daftar Karyawan. Nama dikirim lewat data-*, bukan disisipkan ke kode onclick.
 const ppuAction = (label, onclick, data) => `<button type="button" class="inline-flex min-h-[44px] items-center justify-center gap-2 border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition" ${data} onclick="${onclick}"><span>${label}</span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>`;
 
-// Dipanggil saat keluar (logoutEmployee): hapus data dari halaman dan memori.
+// Dipanggil saat keluar (logoutEmployee): hapus data karyawan dari halaman dan memori. SKPD/Satker terbuka, tetap dipakai.
 function clearPpuData() {
     ppuRequestId++;
-    ppuSatkerRows = null;
     ppuPesertaPage = 1;
-    PPU_BODIES.forEach(id => { ppuById(id).innerHTML = ppuMessageRow("Memuat data..."); });
-    ["ppuSatkerSkpdFilter", "ppuPesertaSkpdFilter", "ppuPesertaSatkerFilter", "ppuPesertaPaginationControls"].forEach(id => { ppuById(id).innerHTML = ""; });
-    ["ppuSkpdCount", "ppuSatkerCount", "ppuPesertaCount", "ppuPesertaPaginationInfo"].forEach(id => { ppuById(id).textContent = ""; });
+    ppuById("ppuPesertaBody").innerHTML = ppuMessageRow("Memuat data...");
+    ppuById("ppuPesertaPaginationControls").innerHTML = "";
+    ["ppuPesertaCount", "ppuPesertaPaginationInfo"].forEach(id => { ppuById(id).textContent = ""; });
     ppuById("ppuPesertaSearch").value = "";
 }
 
 // view: skpd | satker | karyawan (dari showPage, setelah login juga).
 async function showPpuPage(view) {
     document.querySelectorAll("[data-ppu-view]").forEach(el => el.classList.toggle("hidden", el.dataset.ppuView !== view));
-    if (!employeeAuthHeaders()) return;
     if (!ppuSatkerRows) {
-        const requestId = ppuRequestId;
         let data;
         try {
-            data = await employeeApi("/api/ppu-pn/satker");
+            data = await apiGet("/api/ppu-pn/satker");
         } catch (error) {
             PPU_BODIES.forEach(id => { ppuById(id).innerHTML = ppuMessageRow(`Gagal memuat data PPU PN: ${error.message}`); });
             return;
         }
-        if (!data || requestId !== ppuRequestId) return;
         ppuSatkerRows = data.rows;
         const skpdNames = [...new Set(ppuSatkerRows.map(r => r.skpd))];
         ppuById("ppuSatkerSkpdFilter").innerHTML = ppuById("ppuPesertaSkpdFilter").innerHTML = ppuOptions("Semua SKPD", skpdNames);
     }
     if (view === "skpd") renderPpuSkpd();
     if (view === "satker") renderPpuSatker();
-    if (view === "karyawan") { renderPpuSatkerOptions(); loadPpuPeserta(); }
+    if (view === "karyawan") { renderPpuSatkerOptions(); if (employeeAuthHeaders()) loadPpuPeserta(); }
 }
 
 function renderPpuSkpd() {
