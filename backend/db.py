@@ -63,6 +63,14 @@ CREATE TABLE IF NOT EXISTS karyawan_pembayaran (
     jumlah_bayar INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (bulan, noka_keluarga)
 );
+-- PPU PN: satu baris per peserta/keluarga (sheet Gabungan), hierarki SKPD > Satker. Import mengganti seluruh isi.
+CREATE TABLE IF NOT EXISTS ppu_pn (
+    skpd TEXT NOT NULL,
+    satker TEXT NOT NULL,
+    nama_peserta TEXT NOT NULL,
+    status TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_ppu_pn_satker ON ppu_pn(skpd, satker);
 CREATE INDEX IF NOT EXISTS idx_karyawan_pembayaran_noka ON karyawan_pembayaran(noka_keluarga, tanggal_bayar);
 CREATE INDEX IF NOT EXISTS idx_karyawan_bulan_bu ON karyawan(bulan, nama_bu);
 CREATE INDEX IF NOT EXISTS idx_tagihan_bulan ON tagihan(bulan);

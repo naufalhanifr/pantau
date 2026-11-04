@@ -56,11 +56,13 @@ backend/                     FastAPI
   templating.py              penyusun HTML: <!-- @include file.html -->
   routers/monitoring.py      GET /, /api/data, /api/health
   routers/karyawan.py        POST /api/karyawan/login, GET /api/karyawan/meta, /api/karyawan (perlu token)
+  routers/ppu_pn.py          GET /api/ppu-pn/satker, /api/ppu-pn/peserta (token Daftar Karyawan)
   routers/admin.py           GET /admin, /api/admin/* (login, upload, import, records, history)
   services/excel.py          baca Excel + deteksi kolom/bulan/jenis
   services/records.py        query & simpan tagihan/pembayaran
   services/normalize.py      parsing angka, KODE BU 8 digit, nama bulan
   services/karyawan.py       import Excel Karyawan + query Daftar Karyawan per bulan tagih
+  services/ppu_pn.py         import Excel PPU PN + query SKPD/Satker/peserta
 
 web/shared/design-system/    komponen CSS bersama (monitoring + admin)
   base.css  table.css  buttons.css  select-menu.css  empty-state.css  login-card.css
@@ -80,11 +82,11 @@ web/shared/tailwind.css      CSS Tailwind hasil build (tailwind.config.js di roo
 web/monitoring/
   index.html                 kerangka halaman (head + include + urutan script)
   partials/                  header, sidebar, footer, popup detail BU
-  pages/                     dashboard.html, badan-usaha.html, karyawan.html
-  assets/css/pages/          common, dashboard, badan-usaha, business-detail, karyawan
+  pages/                     dashboard.html, badan-usaha.html, karyawan.html, ppu-pn.html
+  assets/css/pages/          common, dashboard, badan-usaha, business-detail, karyawan, ppu-pn
   assets/js/core/            api, utils, state, data, period-filter
   assets/js/layout/          navigation (pindah menu)
-  assets/js/pages/           dashboard, dashboard-trend, badan-usaha, business-detail, karyawan(-auth)
+  assets/js/pages/           dashboard, dashboard-trend, badan-usaha, business-detail, karyawan(-auth), ppu-pn
 
 web/admin/
   index.html  partials/  pages/ (upload, workspace, riwayat; isinya mengikuti menu jenis aktif)
@@ -92,7 +94,7 @@ web/admin/
   assets/js/                 core/, layout/, components/spreadsheet.js, pages/, main.js
 
 Data/                        pantau.db + file Excel sumber
-tests/                       .venv/bin/python -m tests.test_aturan  (dan tests.test_karyawan_tanggal)
+tests/                       .venv/bin/python -m tests.test_aturan  (dan tests.test_karyawan_tanggal, tests.test_ppu_pn)
 ```
 
 HTML dipecah per menu, tetapi backend menyusunnya kembali menjadi satu dokumen. Urutan parsing dan eksekusi script di browser tetap sama seperti file tunggal.
@@ -119,4 +121,14 @@ Diisi lewat web admin menu **Karyawan** (Upload Excel per bulan, Workspace, Riwa
 
 ```bash
 .venv/bin/python -m backend.services.karyawan Data/Karyawan.xlsx   # ±5 detik; bulan yang ada di file diganti
+```
+
+## Data PPU PN
+
+Menu **PPU PN** di monitoring (SKPD, Satker, Karyawan) memakai login yang sama dengan Daftar Karyawan.
+Sumbernya sheet `Gabungan` di file `PPU PN sd <bulan> <tahun>.xlsx`: satu baris per peserta/keluarga dengan kolom `SKPD`, `Satker`, `nmpst`, `pisapst`.
+Disimpan di tabel `ppu_pn` (hanya SKPD, Satker, nama, status; nomor HP, email, dan alamat tidak disimpan). Belum ada upload lewat web admin; isi dari terminal:
+
+```bash
+.venv/bin/python -m backend.services.ppu_pn "Data/PPU PN sd Oktober 2026.xlsx"   # seluruh isi tabel ppu_pn diganti
 ```

@@ -19,7 +19,7 @@
   const passwordInput = () => document.getElementById('employeeLoginPassword');
   function showLogin(show){
     document.getElementById('employeeLoginPanel').classList.toggle('hidden', !show);
-    document.getElementById('employeesProtectedContent').classList.toggle('hidden', show);
+    document.querySelectorAll('[data-karyawan-protected]').forEach(el => el.classList.toggle('hidden', show));   // Daftar Karyawan + PPU PN
   }
   function showMessage(text){
     const box = document.getElementById('employeeLoginError');
@@ -36,6 +36,7 @@
     clearTimeout(idleTimer);
     passwordInput().value = '';
     clearEmployeeData();
+    clearPpuData();
     showLogin(true);
     if (wasLoggedIn && reason) showMessage(LOGOUT_MESSAGES[reason]);
   };
@@ -91,7 +92,7 @@
       showMessage('');
       onActivity();
       showLogin(false);
-      showEmployeesPage();
+      showPage(activePage);   // muat isi menu yang sedang dibuka (Daftar Karyawan atau PPU PN)
       return false;
     }
     showMessage(LOGIN_ERRORS[response?.status] || 'Server tidak dapat dihubungi. Coba lagi.');

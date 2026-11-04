@@ -1,0 +1,94 @@
+<!-- Menu PPU PN: SKPD > Satker > Karyawan, satu section dengan tiga tampilan (ppu-pn.js).
+     Login sama dengan Daftar Karyawan: kartu #employeeLoginPanel dipindah ke sini oleh showPage (navigation.js). -->
+<section class="hidden" id="ppuPage">
+  <div id="ppuProtectedContent" class="hidden" data-karyawan-protected>
+    <div class="pantau-page" data-ppu-view="skpd">
+      <div class="pantau-page-head">
+        <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">SKPD PPU PN</h2>
+        <p class="text-sm text-slate-500 mt-1">SKPD di bawah PPU PN dengan jumlah Satker dan pesertanya.</p>
+      </div>
+      <div class="pantau-card overflow-hidden">
+        <div class="mb-4 min-w-0">
+          <h3 class="text-lg font-bold text-slate-900">Data SKPD</h3>
+          <p class="text-sm text-slate-500" id="ppuSkpdCount"></p>
+        </div>
+        <div class="pantau-table-scroll">
+          <table class="pantau-table"><colgroup><col class="w-[64px]"><col><col class="w-[140px]"><col class="w-[140px]"><col class="w-[160px]"></colgroup>
+            <thead><tr><th>No</th><th>SKPD</th><th class="text-right">Jumlah Satker</th><th class="text-right">Jumlah Peserta</th><th class="text-center">Aksi</th></tr></thead>
+            <tbody id="ppuSkpdBody"><tr><td colspan="5" class="pantau-empty-state">Memuat data...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="pantau-page hidden" data-ppu-view="satker">
+      <div class="pantau-page-head">
+        <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Satker PPU PN</h2>
+        <p class="text-sm text-slate-500 mt-1">Satker dengan SKPD induk dan jumlah pesertanya.</p>
+      </div>
+      <div class="pantau-card overflow-hidden">
+        <div class="mb-4 flex flex-col md:flex-row justify-between gap-4">
+          <div class="min-w-0">
+            <h3 class="text-lg font-bold text-slate-900">Data Satker</h3>
+            <p class="text-sm text-slate-500" id="ppuSatkerCount"></p>
+          </div>
+          <div class="ppu-filters">
+            <label class="pantau-select-field"><span class="pantau-select-field-label">SKPD</span>
+              <select class="pantau-select" id="ppuSatkerSkpdFilter" aria-label="Filter SKPD" onchange="renderPpuSatker()"></select>
+            </label>
+          </div>
+        </div>
+        <div class="pantau-table-scroll">
+          <table class="pantau-table"><colgroup><col class="w-[64px]"><col><col class="w-[260px]"><col class="w-[140px]"><col class="w-[160px]"></colgroup>
+            <thead><tr><th>No</th><th>Satker</th><th>SKPD</th><th class="text-right">Jumlah Peserta</th><th class="text-center">Aksi</th></tr></thead>
+            <tbody id="ppuSatkerBody"><tr><td colspan="5" class="pantau-empty-state">Memuat data...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="pantau-page hidden" data-ppu-view="karyawan">
+      <div class="pantau-page-head">
+        <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Karyawan PPU PN</h2>
+        <p class="text-sm text-slate-500 mt-1">Peserta dan anggota keluarganya, per Satker dan SKPD.</p>
+      </div>
+      <div class="pantau-card overflow-hidden">
+        <div class="mb-4 flex flex-col md:flex-row justify-between gap-4">
+          <div class="min-w-0">
+            <h3 class="text-lg font-bold text-slate-900">Data Karyawan</h3>
+            <p class="text-sm text-slate-500" id="ppuPesertaCount"></p>
+          </div>
+          <div class="ppu-filters">
+            <label class="pantau-select-field"><span class="pantau-select-field-label">SKPD</span>
+              <select class="pantau-select" id="ppuPesertaSkpdFilter" aria-label="Filter SKPD" onchange="renderPpuSatkerOptions(); filterPpuPeserta()"></select>
+            </label>
+            <label class="pantau-select-field"><span class="pantau-select-field-label">Satker</span>
+              <select class="pantau-select" id="ppuPesertaSatkerFilter" aria-label="Filter Satker" onchange="filterPpuPeserta()"></select>
+            </label>
+            <label class="pantau-select-field"><span class="pantau-select-field-label">Nama</span>
+              <span class="pantau-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input id="ppuPesertaSearch" type="text" autocomplete="off" placeholder="Cari nama peserta" aria-label="Cari nama peserta" oninput="filterPpuPeserta()">
+              </span>
+            </label>
+          </div>
+        </div>
+        <div class="pantau-table-scroll">
+          <table class="pantau-table"><colgroup><col class="w-[64px]"><col><col class="w-[160px]"><col class="w-[220px]"><col class="w-[220px]"></colgroup>
+            <thead><tr><th>No</th><th>Nama Peserta</th><th>Status Peserta</th><th>Satker</th><th>SKPD</th></tr></thead>
+            <tbody id="ppuPesertaBody"><tr><td colspan="5" class="pantau-empty-state">Memuat data...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <span class="text-xs text-slate-500 whitespace-nowrap">Tampil:</span>
+            <select class="pantau-select" id="ppuPesertaPageSize" onchange="changePpuPesertaPageSize()" aria-label="Jumlah data per halaman">
+              <option value="10" selected>10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option>
+            </select>
+          </div>
+          <div class="text-xs text-slate-500 max-sm:order-last max-sm:w-full" id="ppuPesertaPaginationInfo"></div>
+          <div class="flex flex-wrap justify-end items-center gap-1.5" id="ppuPesertaPaginationControls"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

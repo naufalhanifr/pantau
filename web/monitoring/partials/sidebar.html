@@ -4,5 +4,11 @@
     <button class="pantau-sidebar-nav pantau-sidebar-active" type="button" data-nav="dashboard" onclick="showPage('dashboard')"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i><span class="pantau-sidebar-label">Dashboard</span></button>
     <button class="pantau-sidebar-nav" type="button" data-nav="monitoring" onclick="showPage('monitoring')"><i class="fa-solid fa-building" aria-hidden="true"></i><span class="pantau-sidebar-label">Daftar Badan Usaha</span></button>
     <button class="pantau-sidebar-nav" type="button" data-nav="employees" onclick="showPage('employees')"><i class="fa-solid fa-users" aria-hidden="true"></i><span class="pantau-sidebar-label">Daftar Karyawan</span></button>
+    <div class="pantau-sidebar-group">
+      <button class="pantau-sidebar-group-title" type="button" aria-expanded="true" onclick="toggleSidebarGroup(this)"><i class="fa-solid fa-landmark" aria-hidden="true"></i><span class="pantau-sidebar-label">PPU PN</span><i class="fa-solid fa-chevron-down pantau-sidebar-group-chevron pantau-sidebar-label" aria-hidden="true"></i></button>
+      <button class="pantau-sidebar-nav" type="button" data-nav="ppu-skpd" onclick="showPage('ppu-skpd')"><i class="fa-solid fa-sitemap" aria-hidden="true"></i><span class="pantau-sidebar-label">SKPD</span></button>
+      <button class="pantau-sidebar-nav" type="button" data-nav="ppu-satker" onclick="showPage('ppu-satker')"><i class="fa-solid fa-building-user" aria-hidden="true"></i><span class="pantau-sidebar-label">Satker</span></button>
+      <button class="pantau-sidebar-nav" type="button" data-nav="ppu-karyawan" onclick="showPage('ppu-karyawan')"><i class="fa-solid fa-id-card" aria-hidden="true"></i><span class="pantau-sidebar-label">Karyawan</span></button>
+    </div>
   </nav>
 </aside>

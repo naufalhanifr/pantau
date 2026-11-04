@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .config import WEB_DIR
 from .db import init_db
-from .routers import admin, karyawan, monitoring
+from .routers import admin, karyawan, monitoring, ppu_pn
 
 
 @asynccontextmanager
@@ -43,6 +43,7 @@ app.include_router(admin.router)
 app.include_router(admin.api)
 app.include_router(karyawan.router)
 app.include_router(karyawan.api)
+app.include_router(ppu_pn.api)
 
 app.mount("/assets", StaticFiles(directory=WEB_DIR / "monitoring" / "assets"), name="monitoring-assets")
 app.mount("/admin/assets", StaticFiles(directory=WEB_DIR / "admin" / "assets"), name="admin-assets")
