@@ -1,12 +1,15 @@
 """Aturan berisiko: token per peran, kunci login, parsing nominal, status bayar. Jalankan: .venv/bin/python -m tests.test_aturan"""
 import base64
 import sqlite3
+import time
 from types import SimpleNamespace
 
 from fastapi import HTTPException
 
+from backend import auth
 from backend.auth import check_login, issue_token, require_admin, require_karyawan, require_ppu_pn
-from backend.db import SCHEMA
+from backend.config import LOGIN_LOCK_SECONDS
+from backend.db import SCHEMA, migrate
 from backend.services.karyawan import _insert, employee_page, pay_summary
 from backend.services.normalize import amount_error, parse_amount, parse_number
 
@@ -38,6 +41,11 @@ for _ in range(10):
     assert status(lambda: check_login(request, "test", "salah", "benar")) == 401
 assert status(lambda: check_login(request, "test", "benar", "benar")) == 429
 assert status(lambda: check_login(request, "test-lain", "benar", "benar")) is None
+
+# Hitungan gagal yang sudah kedaluwarsa dibuang, jadi IP yang berhenti mencoba tidak menumpuk di memori.
+auth._failed_logins[("lama", "10.0.0.9")] = [time.time() - LOGIN_LOCK_SECONDS - 1]
+check_login(request, "test-lain", "benar", "benar")
+assert ("lama", "10.0.0.9") not in auth._failed_logins
 
 # Variabel kata sandi belum di-set: semua login ditolak, termasuk kata sandi kosong.
 assert status(lambda: check_login(request, "belum-diatur", "", "")) == 503
@@ -76,4 +84,27 @@ assert (row["tanggal_bayar"], row["jumlah_bayar"]) == (None, 70), row
 _insert(conn, [(*person[:6], "1", *person[7:9], 5, 100, "2026-01-05", 100)])
 assert [r["noka_keluarga"] for r in conn.execute("SELECT noka_keluarga FROM karyawan WHERE bulan = 'Januari' ORDER BY rowid")] == ["1", "2", "3"]
 assert conn.execute("SELECT bulan_menunggak FROM karyawan WHERE bulan = 'Januari' AND noka_keluarga = '1'").fetchone()[0] == 5
+# Migrasi database versi lama (jalan otomatis di server saat start), dua kali berturut-turut tetap aman.
+old = sqlite3.connect(":memory:")
+old.executescript("""
+CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+CREATE TABLE perusahaan (kode_bu TEXT PRIMARY KEY, nama_bu TEXT NOT NULL);
+CREATE TABLE tagihan (kode_bu TEXT NOT NULL, bulan TEXT NOT NULL, periode TEXT NOT NULL, peserta INTEGER NOT NULL DEFAULT 0,
+    nominal INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (kode_bu, bulan));
+CREATE TABLE karyawan (bulan TEXT NOT NULL, periode TEXT NOT NULL, kode_bu TEXT NOT NULL, nama_bu TEXT NOT NULL, noka_peserta TEXT NOT NULL,
+    nama_peserta TEXT NOT NULL, noka_keluarga TEXT NOT NULL, nama_keluarga TEXT NOT NULL, status TEXT NOT NULL,
+    bulan_menunggak INTEGER NOT NULL DEFAULT 0, nominal_tagihan INTEGER NOT NULL DEFAULT 0, tanggal_bayar TEXT, jumlah_bayar INTEGER,
+    PRIMARY KEY (bulan, noka_keluarga));
+INSERT INTO tagihan VALUES ('00000001', 'Januari', 'Januari', 1, 100);
+INSERT INTO karyawan VALUES ('Januari', 'Januari', '00000001', 'PT A', '1', 'A', '1', 'A', 'Peserta', 0, 100, '2026-01-05', 100);
+INSERT INTO karyawan VALUES ('Januari', 'Januari', '00000001', 'PT A', '2', 'B', '2', 'B', 'Peserta', 0, 100, NULL, NULL);
+""")
+migrate(old)
+migrate(old)
+columns = lambda table: {row[1] for row in old.execute(f"PRAGMA table_info({table})")}
+assert not old.execute("SELECT 1 FROM sqlite_master WHERE name = 'metadata'").fetchone()
+assert "nama_bu" in columns("tagihan") and "nama_bu" in columns("pembayaran")
+assert not {"tanggal_bayar", "jumlah_bayar"} & columns("karyawan")
+assert old.execute("SELECT * FROM karyawan_pembayaran").fetchall() == [("Januari", "1", "2026-01-05", 100)]
+assert old.execute("SELECT kode_bu, nominal, nama_bu FROM tagihan").fetchall() == [("00000001", 100, None)]
 print("ok")

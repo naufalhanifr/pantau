@@ -1,5 +1,6 @@
 import sqlite3
 from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
 
 from .config import DB_PATH
 
@@ -103,12 +104,28 @@ def transaction():
 def init_db() -> None:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with transaction() as conn:
-        _migrate_ppu_pn(conn)
-        conn.executescript(SCHEMA)
-        _migrate_karyawan(conn)
-        _migrate_nama_per_bulan(conn)
-        # Sisa versi awal: tidak dibaca kode mana pun, sumber datanya sekarang import_log.
-        conn.execute("DROP TABLE IF EXISTS metadata")
+        migrate(conn)
+
+
+def migrate(conn: sqlite3.Connection) -> None:
+    """Buat tabel yang belum ada dan ubah struktur versi lama; aman dijalankan tiap start."""
+    _migrate_ppu_pn(conn)
+    conn.executescript(SCHEMA)
+    _migrate_karyawan(conn)
+    _migrate_nama_per_bulan(conn)
+    # Sisa versi awal: tidak dibaca kode mana pun, sumber datanya sekarang import_log.
+    conn.execute("DROP TABLE IF EXISTS metadata")
+
+
+# Kantor di WIB; jam server bisa UTC, jadi waktu riwayat tidak memakai datetime('now', 'localtime').
+WIB = timezone(timedelta(hours=7))
+
+
+def log_change(conn: sqlite3.Connection, action: str, source: str, jenis: str, bulan: str, written: int, deleted: int) -> None:
+    conn.execute(
+        "INSERT INTO import_log (created_at, action, source, jenis, bulan, rows_written, rows_deleted) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (datetime.now(WIB).strftime("%Y-%m-%d %H:%M:%S"), action, source, jenis, bulan, written, deleted),
+    )
 
 
 def _migrate_nama_per_bulan(conn: sqlite3.Connection) -> None:

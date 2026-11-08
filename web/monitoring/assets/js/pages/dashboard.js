@@ -25,6 +25,7 @@ function dashboardPeriod() {
     const f = selectedFilters("dashboard");
     const end = Number(f.month), year = Number(f.year);
     const start = Math.min(Number(f.startMonth) || end, end);
+    if (!PANTAU_LATEST_MONTH) return { start, end, year, label: "(belum ada data)" };
     const label = start === end ? `${MONTHS[end - 1]} ${year}` : `${MONTHS[start - 1]} sd ${MONTHS[end - 1]} ${year}`;
     return { start, end, year, label };
 }

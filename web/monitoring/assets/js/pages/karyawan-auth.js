@@ -12,7 +12,6 @@
     offline: 'Koneksi terputus. Silakan masuk kembali setelah jaringan tersambung.',
     expired: 'Sesi berakhir. Silakan masuk kembali.',
   };
-  const LOGIN_ERRORS = { 401: 'Kata sandi tidak sesuai.', 403: 'Login belum bisa dipakai karena kata sandi server belum diatur. Hubungi admin PANTAU.', 429: 'Terlalu banyak percobaan. Coba lagi dalam 15 menit.' };
   const passwordInput = () => document.getElementById('employeeLoginPassword');
   function renderMessage(text){
     const box = document.getElementById('employeeLoginError');
@@ -58,7 +57,7 @@
         const data = await apiGet(path, init);
         return authHeaders() ? data : null;   // sudah keluar saat request berjalan: buang datanya
       } catch (error) {
-        if (error.message.startsWith('HTTP 401')) { logout('expired'); return null; }
+        if (error.status === 401) { logout('expired'); return null; }
         if (error instanceof TypeError) { logout('offline'); return null; }   // fetch gagal = koneksi putus
         throw error;
       }
@@ -93,11 +92,15 @@
         showMessage(LOGOUT_MESSAGES.offline);
         return;
       }
-      let response = null;
+      let response;
       try {
-        response = await fetch(`${base}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password }) });
-      } catch {}
-      if (response?.ok) {
+        response = await pantauFetch(`${base}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password }) });
+      } catch (error) {
+        showMessage(error.message);
+        input.focus();
+        return;
+      }
+      if (response.ok) {
         token = (await response.json()).token;
         lastRefresh = Date.now();
         lastActivity = 0;
@@ -107,7 +110,8 @@
         showPage(activePage);   // muat isi menu yang sedang dibuka
         return;
       }
-      showMessage(LOGIN_ERRORS[response?.status] || 'Server tidak dapat dihubungi. Coba lagi.');
+      // Pesan dari server: kata sandi salah, terkunci 15 menit, atau kata sandi belum diatur.
+      showMessage((await pantauResponseError(response)).message);
       input.focus();
     }
     return { title, authHeaders, logout, api, onActivity, onVisible, login, loggedIn: () => token !== null, message: () => message };

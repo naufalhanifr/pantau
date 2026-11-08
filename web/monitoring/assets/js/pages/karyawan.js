@@ -57,6 +57,11 @@ async function loadEmployeeMeta() {
         return showEmployeeError(error);
     }
     if (!meta) return;
+    if (!meta.months.length) {
+        document.getElementById("employeeTableBody").innerHTML = '<tr><td colspan="11" class="pantau-empty-state">Belum ada data karyawan. Data akan tampil setelah diunggah oleh admin PANTAU.</td></tr>';
+        ["employeeCountLabel", "employeePaginationInfo"].forEach(id => { document.getElementById(id).textContent = "Belum ada data"; });
+        return;
+    }
     select.innerHTML = meta.months.map(m => `<option value="${escapeHtml(m.bulan)}">${escapeHtml(m.bulan)}</option>`).join("");
     select.value = meta.bulan;
     document.getElementById("employeePeriodLabel").textContent = meta.bulan;

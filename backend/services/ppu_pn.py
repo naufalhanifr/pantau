@@ -15,7 +15,8 @@ from typing import Any
 from openpyxl import load_workbook
 
 from ..config import MONTHS
-from .normalize import amount_error, like_pattern, normalize_name, parse_amount
+from ..db import log_change
+from .normalize import ExcelError, amount_error, like_pattern, normalize_name, parse_amount
 
 SHEET = "Gabungan"
 COLUMNS = {
@@ -34,12 +35,12 @@ def read_workbook(path: Any) -> list[tuple[str, str, str, str, str, int, int]]:
     workbook = load_workbook(path, read_only=True, data_only=True)
     try:
         if SHEET not in workbook.sheetnames:
-            raise ValueError(f"Sheet {SHEET} tidak ditemukan.")
+            raise ExcelError(f"Sheet {SHEET} tidak ditemukan.")
         rows = workbook[SHEET].iter_rows(values_only=True)
         header = [str(cell or "").strip().lower() for cell in next(rows, ())]
         missing = [name for name in COLUMNS.values() if name not in header]
         if missing:
-            raise ValueError(f"Kolom tidak ditemukan di sheet {SHEET}: {', '.join(missing)}")
+            raise ExcelError(f"Kolom tidak ditemukan di sheet {SHEET}: {', '.join(missing)}")
         index = [header.index(name) for name in COLUMNS.values()]
         parsed, problems = [], []
         for position, row in enumerate(rows, start=2):
@@ -51,7 +52,7 @@ def read_workbook(path: Any) -> list[tuple[str, str, str, str, str, int, int]]:
             problems += [f"Baris {position}: {error}" for error in errors if error]
             parsed.append((skpd, satker, nama, STATUS.get(status.upper(), status), jenis, parse_amount(values[5]), parse_amount(values[6])))
         if problems:
-            raise ValueError("Data lama tidak diubah. Perbaiki dulu:\n" + "\n".join(problems[:50]))
+            raise ExcelError("Data lama tidak diubah. Perbaiki dulu:\n" + "\n".join(problems[:50]))
         return parsed
     finally:
         workbook.close()
@@ -69,10 +70,7 @@ def import_rows(conn: sqlite3.Connection, rows: list[tuple], source: str, bulan:
         "INSERT INTO ppu_pn (bulan, skpd, satker, nama_peserta, status, jenis, bulan_menunggak, saldo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         [(bulan, *row) for row in rows],
     )
-    conn.execute(
-        "INSERT INTO import_log (action, source, jenis, bulan, rows_written, rows_deleted) VALUES ('upload', ?, 'ppu_pn', ?, ?, ?)",
-        (source, bulan, len(rows), deleted),
-    )
+    log_change(conn, "upload", source, "ppu_pn", bulan, len(rows), deleted)
     return {"written": len(rows), "deleted": deleted}
 
 

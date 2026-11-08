@@ -10,19 +10,14 @@ function setAdminToken(token) {
     else sessionStorage.removeItem(ADMIN_TOKEN_KEY);
 }
 
-function errorMessage(detail, status) {
-    if (Array.isArray(detail)) return detail.map(item => item.msg || item).join("\n");
-    return detail || `HTTP ${status}`;
-}
-
 // Unduh file dari API admin (butuh token, jadi tidak bisa lewat <a href> biasa).
 async function adminDownload(path) {
-    const response = await fetch(path, { headers: { Authorization: `Bearer ${getAdminToken()}` } });
-    if (response.status === 401) {
-        setAdminToken("");
-        showAdminLogin();
+    const response = await pantauFetch(path, { headers: { Authorization: `Bearer ${getAdminToken()}` } });
+    if (!response.ok) {
+        const error = await pantauResponseError(response);
+        if (response.status === 401) expireAdminSession(error.message);
+        throw error;
     }
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const filename = /filename="([^"]+)"/.exec(response.headers.get("Content-Disposition") || "")?.[1] || "template.xlsx";
     const link = Object.assign(document.createElement("a"), { href: URL.createObjectURL(await response.blob()), download: filename });
     link.click();
@@ -37,14 +32,16 @@ async function adminApi(path, { method = "GET", body, form } = {}) {
         headers["Content-Type"] = "application/json";
         payload = JSON.stringify(body);
     }
-    const response = await fetch(path, { method, headers, body: payload });
-    const text = await response.text();
-    let data = null;
-    try { data = text ? JSON.parse(text) : null; } catch { data = null; }
-    if (response.status === 401 && path !== "/api/admin/login") {
-        setAdminToken("");
-        showAdminLogin();
+    const response = await pantauFetch(path, { method, headers, body: payload });
+    if (!response.ok) {
+        const error = await pantauResponseError(response);
+        if (response.status === 401 && path !== "/api/admin/login") expireAdminSession(error.message);
+        throw error;
     }
-    if (!response.ok) throw new Error(errorMessage(data?.detail, response.status));
-    return data;
+    const text = await response.text();
+    try {
+        return text ? JSON.parse(text) : null;
+    } catch {
+        throw new Error(PANTAU_UNREADABLE);
+    }
 }

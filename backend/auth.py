@@ -6,7 +6,8 @@ import secrets
 import threading
 import time
 
-from fastapi import Header, HTTPException, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from pydantic import BaseModel
 
 from .config import LOGIN_LOCK_SECONDS, LOGIN_MAX_FAILURES, SECRET_KEY, TOKEN_TTL_SECONDS
 
@@ -33,10 +34,13 @@ def check_login(request: Request, scope: str, password: str, expected: str) -> N
     """Salah kata sandi LOGIN_MAX_FAILURES kali dari satu IP mengunci login scope itu selama LOGIN_LOCK_SECONDS."""
     # Tanpa ini, kata sandi kosong cocok dengan variabel yang belum di-set.
     if not expected:
-        raise HTTPException(status_code=503, detail="Kata sandi menu ini belum diatur di server.")
+        raise HTTPException(status_code=503, detail="Login menu ini belum bisa dipakai karena kata sandinya belum diatur di server. Hubungi admin PANTAU.")
     key = (scope, request.client.host if request.client else "")
     now = time.time()
     with _login_lock:
+        # IP yang berhenti mencoba tidak menumpuk di memori.
+        for stale in [k for k, times in _failed_logins.items() if now - times[-1] >= LOGIN_LOCK_SECONDS]:
+            del _failed_logins[stale]
         failures = [t for t in _failed_logins.get(key, []) if now - t < LOGIN_LOCK_SECONDS]
         if len(failures) >= LOGIN_MAX_FAILURES:
             log.warning("login ditolak (terkunci) scope=%s ip=%s", scope, key[1])
@@ -93,3 +97,29 @@ def require_karyawan(authorization: str = Header(default="")) -> None:
 
 def require_ppu_pn(authorization: str = Header(default="")) -> None:
     _verify(authorization, "ppu_pn", "data karyawan PPU PN")
+
+
+class LoginBody(BaseModel):
+    password: str
+
+
+def session_routes(prefix: str, role: str, password: str, ttl: int, require, refresh: bool = True) -> APIRouter:
+    """POST login, refresh (perpanjang sesi selama pengguna aktif), dan logout untuk satu peran."""
+    router = APIRouter(prefix=prefix)
+
+    @router.post("/login")
+    def login(body: LoginBody, request: Request):
+        check_login(request, role, body.password, password)
+        return {"token": issue_token(role, ttl)}
+
+    if refresh:
+        @router.post("/refresh", dependencies=[Depends(require)])
+        def refresh_token():
+            return {"token": issue_token(role, ttl)}
+
+    @router.post("/logout", dependencies=[Depends(require)])
+    def logout(authorization: str = Header(default="")):
+        revoke_token(authorization)
+        return {"ok": True}
+
+    return router

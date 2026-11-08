@@ -12,8 +12,10 @@ os.environ.update(
     PANTAU_ADMIN_PASSWORD="uji-admin", PANTAU_KARYAWAN_PASSWORD="uji-karyawan", PANTAU_PPU_PN_PASSWORD="uji-ppu",
 )
 
+from datetime import datetime, timedelta, timezone
+
 from fastapi.testclient import TestClient
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 
 from backend.main import app
 
@@ -29,6 +31,19 @@ def ppu_file(rows) -> tuple[str, BytesIO, str]:
     workbook.save(buffer)
     buffer.seek(0)
     return ("PPU PN sd Oktober 2026.xlsx", buffer, "application/octet-stream")
+
+
+def xlsx(sheets: dict[str, list[list]], name: str) -> tuple[str, BytesIO, str]:
+    workbook = Workbook()
+    workbook.remove(workbook.active)
+    for title, rows in sheets.items():
+        sheet = workbook.create_sheet(title)
+        for row in rows:
+            sheet.append(row)
+    buffer = BytesIO()
+    workbook.save(buffer)
+    buffer.seek(0)
+    return (name, buffer, "application/octet-stream")
 
 
 def bu(kode="00000001", peserta=1, nominal=1000, nama="PT UJI"):
@@ -56,7 +71,7 @@ with TestClient(app) as client:
     protected = [
         ("POST", "/api/karyawan/search", pegawai, {"bulan": "Januari"}), ("POST", "/api/karyawan/riwayat", pegawai, {"noka": "1", "bulan": "Januari"}),
         ("GET", "/api/karyawan/meta", pegawai, None), ("POST", "/api/ppu-pn/peserta", ppu, {"bulan": "Januari"}),
-        ("GET", "/api/admin/summary", admin, None), ("POST", "/api/admin/import", admin, {"jenis": "tagihan", "bulan": "Januari", "rows": [bu()]}),
+        ("GET", "/api/admin/summary", admin, None), ("POST", "/api/admin/import", admin, {"jenis": "tagihan", "sheets": [{"bulan": "Januari", "rows": [bu()]}]}),
     ]
     for method, path, owner, body in protected:
         others = [token for token in (admin, pegawai, ppu) if token is not owner]
@@ -75,7 +90,7 @@ with TestClient(app) as client:
 
     # Nilai rusak ditolak utuh: tidak ada baris yang tersimpan.
     def upload_status(rows, jenis="tagihan", bulan="Februari"):
-        return client.post("/api/admin/import", headers=admin, json={"jenis": jenis, "bulan": bulan, "rows": rows})
+        return client.post("/api/admin/import", headers=admin, json={"jenis": jenis, "sheets": [{"bulan": bulan, "rows": rows}]})
 
     for rows in (
         [bu(nominal="lima juta")], [bu(nominal=-5000)], [bu(kode="KODE-SALAH")], [bu(kode="123456789012345678")],
@@ -152,4 +167,84 @@ with TestClient(app) as client:
     hidden = client.get("/api/ppu-pn/detail", params={"bulan": "Oktober", "skpd": "DINAS C"}).json()
     assert hidden["tunggakan"] is None and all(row["tunggakan"] is None for row in hidden["per_jenis"])
     assert client.get("/api/ppu-pn/peserta").status_code == 405   # nama peserta hanya lewat POST
+    # Upload banyak bulan: satu backup, dan satu bulan yang salah membatalkan semuanya.
+    many = lambda sheets: client.post("/api/admin/import", headers=admin, json={"jenis": "tagihan", "sheets": sheets})
+    rows_in = lambda bulan: next(m["tagihan_rows"] for m in client.get("/api/admin/summary", headers=admin).json()["per_bulan"] if m["bulan"] == bulan)
+    before = len(backups())
+    bad = many([{"bulan": "April", "rows": [bu(nominal=10)]}, {"bulan": "Mei", "rows": [bu(nominal="x")]}])
+    assert bad.status_code == 422 and bad.json()["detail"][0].startswith("Mei: Baris 1"), bad.json()
+    assert rows_in("April") == 0 and len(backups()) == before
+    assert many([{"bulan": "April", "rows": [bu(nominal=10)]}, {"bulan": "Mei", "rows": [bu(nominal=20)]}]).json() == {
+        "per_bulan": [{"bulan": "April", "written": 1, "deleted": 0}, {"bulan": "Mei", "written": 1, "deleted": 0}]}
+    assert rows_in("April") == rows_in("Mei") == 1 and len(backups()) == before + 1
+    assert many([{"bulan": "April", "rows": []}]).status_code == 422 and many([]).status_code == 422
+
+    # Workspace: ubah, tambah, hapus; nilai salah ditolak tanpa mengubah apa pun.
+    put = lambda body: client.put("/api/admin/records", headers=admin, json=body)
+    records = lambda jenis, bulan: client.get("/api/admin/records", headers=admin, params={"jenis": jenis, "bulan": bulan}).json()["rows"]
+    assert put({"jenis": "tagihan", "bulan": "Maret", "upserts": [bu(kode="00000002", nominal=500, nama="PT DUA")], "deletes": ["00000001"]}).json() == {"written": 1, "deleted": 1}
+    assert [(r["kode_bu"], r["nama_bu"], r["nominal"]) for r in records("tagihan", "Maret")] == [("00000002", "PT DUA", 500)]
+    assert put({"jenis": "tagihan", "bulan": "Maret", "upserts": [bu(kode="00000002", nominal="abc")]}).status_code == 422
+    assert records("tagihan", "Maret")[0]["nominal"] == 500
+    assert put({"jenis": "karyawan", "bulan": "Februari", "upserts": [{**person, "jumlah_bayar": 100}], "deletes": []}).json() == {"written": 1, "deleted": 0}
+    assert records("karyawan", "Februari")[0]["jumlah_bayar"] == 100
+    assert put({"jenis": "karyawan", "bulan": "Juni", "upserts": [], "deletes": []}).json() == {"written": 0, "deleted": 0}
+
+    # Waktu riwayat dalam WIB, apa pun zona waktu server.
+    stamp = datetime.strptime(client.get("/api/admin/history?jenis=tagihan", headers=admin).json()["rows"][0]["created_at"], "%Y-%m-%d %H:%M:%S")
+    assert abs(stamp - datetime.now(timezone(timedelta(hours=7))).replace(tzinfo=None)) < timedelta(minutes=2), stamp
+
+    # Perpanjang sesi: hanya untuk peran sendiri; admin tidak punya refresh.
+    fresh = client.post("/api/karyawan/refresh", headers=pegawai).json()["token"]
+    assert client.get("/api/karyawan/meta", headers={"Authorization": f"Bearer {fresh}"}).status_code == 200
+    assert client.post("/api/ppu-pn/refresh", headers=ppu).status_code == 200
+    assert client.post("/api/ppu-pn/refresh", headers=pegawai).status_code == 401
+    assert client.post("/api/admin/refresh", headers=admin).status_code == 404
+
+    # Template: 12 sheet bulan.
+    for jenis in ("tagihan", "karyawan"):
+        template = client.get(f"/api/admin/template?jenis={jenis}", headers=admin)
+        assert template.status_code == 200 and load_workbook(BytesIO(template.content)).sheetnames[0] == "Januari", jenis
+
+    # Baca Excel Tagihan/Pembayaran: kolom dan bulan dikenali dari header, format rekap dikenali.
+    upload = lambda file, **params: client.post("/api/admin/upload", headers=admin, params=params, files={"file": file})
+    sheet = upload(xlsx({"Maret": [["NO", "KODE BU", "NAMA BU", "Periode", "Peserta", "Nominal"], [1, 1, "PT A", "Maret", 3, 1000]]}, "Tagihan.xlsx"), jenis="tagihan").json()["sheets"][0]
+    assert (sheet["bulan"], sheet["jenis"], sheet["mapping"]) == ("Maret", "tagihan", {"kode_bu": 1, "nama_bu": 2, "periode": 3, "peserta": 4, "nominal": 5}), sheet
+    rekap = upload(xlsx({"Sheet1": [["Kode BU", "Nama BU", "Total Tagihan Januari", "Total Bayar Januari"], ["00000001", "PT A", 100, 50]]}, "rekap.xlsx"), jenis="tagihan").json()["sheets"][0]
+    assert (rekap["bulan"], rekap["jenis"], rekap["mapping"]["tagihan"], rekap["mapping"]["bayar"]) == ("Januari", "rekap", 2, 3), rekap
+    assert upload(("data.csv", BytesIO(b"a,b"), "text/csv"), jenis="tagihan").status_code == 422
+    broken = upload(("rusak.xlsx", BytesIO(b"bukan excel"), "application/octet-stream"), jenis="tagihan")
+    assert broken.status_code == 422 and "tidak dapat dibaca" in broken.json()["detail"]
+    assert upload(xlsx({"Maret": [["x"]]}, "Karyawan.xlsx"), jenis="karyawan").status_code == 422   # tanpa bulan
+    # Error: API menjawab pesan Indonesia yang menjelaskan langkah berikutnya; browser mendapat halaman PANTAU, bukan teks JSON.
+    missing = client.get("/api/tidak-ada")
+    assert missing.status_code == 404 and missing.json()["detail"].startswith("Alamat atau data"), missing.text
+    page = client.get("/halaman-salah")
+    assert page.status_code == 404 and page.headers["content-type"].startswith("text/html")
+    assert "Halaman tidak ditemukan" in page.text and "Kode 404" in page.text and "<!--title-->" not in page.text
+    assert client.get("/assets/tidak-ada.js").status_code == 404
+    assert "sudah berubah" in client.get("/api/ppu-pn/peserta").json()["detail"]   # 405: halaman versi lama
+    invalid = client.post("/api/karyawan/search", headers=pegawai, json={"bulan": "Januari", "size": 1000})
+    assert invalid.status_code == 422 and invalid.json()["detail"].startswith("Data yang dikirim"), invalid.text
+    assert client.post("/api/karyawan/search", headers=pegawai, json={"bulan": "Bulan13"}).json()["detail"] == "Bulan tidak dikenal: Bulan13"
+    assert client.get("/shared/error.html").text.count("PANTAU sedang tidak tersedia") == 1   # halaman nginx saat backend mati
+    import backend.routers.monitoring as monitoring_router
+    import backend.services.records as records_service
+    original_summary, original_page = records_service.month_summary, monitoring_router.render_page
+
+    def locked(conn):
+        raise sqlite3.OperationalError("database is locked")
+    try:
+        with TestClient(app, raise_server_exceptions=False) as quiet:
+            records_service.month_summary = lambda conn: 1 / 0
+            crash = quiet.get("/api/admin/summary", headers=admin)
+            assert crash.status_code == 500 and crash.json()["detail"].startswith("Terjadi kesalahan di server"), crash.text
+            records_service.month_summary = locked
+            busy = quiet.get("/api/admin/summary", headers=admin)
+            assert busy.status_code == 503 and busy.headers["retry-after"] == "5" and "dipakai proses lain" in busy.json()["detail"]
+            monitoring_router.render_page = lambda path: 1 / 0
+            broken_page = quiet.get("/")
+            assert broken_page.status_code == 500 and "Terjadi kesalahan di server" in broken_page.text
+    finally:
+        records_service.month_summary, monitoring_router.render_page = original_summary, original_page
 print("ok")

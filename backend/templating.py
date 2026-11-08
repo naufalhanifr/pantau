@@ -4,6 +4,7 @@ Browser tetap menerima satu dokumen HTML utuh, sehingga urutan parsing, CSS, dan
 sama persis seperti file tunggal, tetapi sumbernya bisa dipecah per menu/komponen.
 """
 import re
+from html import escape
 from pathlib import Path
 
 INCLUDE_RE = re.compile(r"^([ \t]*)<!--\s*@include\s+(\S+)\s*-->[ \t]*$", re.MULTILINE)
@@ -35,4 +36,12 @@ def render_page(path: Path) -> str:
     files: list[Path] = []
     html = _render(path, (), files)
     _cache[path] = (tuple((f, f.stat().st_mtime_ns) for f in files), html)
+    return html
+
+
+def render_error(web_dir: Path, code: int, title: str, message: str) -> str:
+    """web/shared/error.html dengan kode, judul, dan pesan diganti (teks di antara penanda <!--x--> dan <!--/x-->)."""
+    html = (web_dir / "shared" / "error.html").read_text(encoding="utf-8")
+    for key, value in (("code", f"Kode {code}"), ("title", title), ("message", message)):
+        html = re.sub(rf"<!--{key}-->.*?<!--/{key}-->", escape(value), html, count=1, flags=re.S)
     return html

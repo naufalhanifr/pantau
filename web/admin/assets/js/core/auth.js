@@ -13,6 +13,15 @@ async function endAdminSession(message) {
     box.classList.toggle("hidden", !message);
 }
 
+// Token ditolak server di tengah kerja: kembali ke login dengan alasannya (isian Workspace tetap ada).
+function expireAdminSession(message) {
+    setAdminToken("");
+    showAdminLogin();
+    const box = document.getElementById("adminLoginError");
+    box.textContent = message;
+    box.classList.remove("hidden");
+}
+
 function checkAdminIdle() {
     if (getAdminToken() && Date.now() - adminLastActivity >= ADMIN_IDLE_LIMIT) endAdminSession("Sesi berakhir karena tidak aktif selama 30 menit. Silakan masuk kembali.");
 }

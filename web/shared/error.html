@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PANTAU</title>
+<!-- Halaman error mandiri (tanpa CSS/JS luar): dipakai backend untuk 404/500 dan oleh nginx saat backend mati (502/504),
+     ketika file CSS di /shared pun tidak bisa dimuat. Teks di antara penanda <!--x--> diganti backend (templating.render_error). -->
+<style>
+  body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px 16px; box-sizing: border-box;
+         background: #f8fafc; color: #334155; font-family: ui-sans-serif, system-ui, sans-serif; }
+  .card { width: min(460px, 100%); padding: 28px 24px 22px; border: 1px solid #dbe5ef; border-radius: 8px; background: #fff; text-align: center;
+          box-shadow: 0 18px 32px -18px rgba(15,23,42,.28), 0 4px 10px -6px rgba(15,23,42,.12); }
+  .brand { margin: 0 0 16px; color: #047857; font-size: 14px; font-weight: 700; }
+  .code { margin: 0 0 4px; color: #64748b; font-size: 13px; }
+  h1 { margin: 0; color: #0f172a; font-size: 24px; line-height: 1.25; }
+  p.message { margin: 8px 0 20px; color: #64748b; font-size: 14px; line-height: 1.5; }
+  .actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .actions a, .actions button { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 8px; font: inherit;
+          font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer; }
+  .primary { border: 0; background: linear-gradient(135deg, #0f766e, #059669); color: #fff; }
+  .secondary { border: 1px solid #e2e8f0; background: #fff; color: #334155; }
+</style>
+</head>
+<body>
+<main class="card">
+  <p class="brand">PANTAU</p>
+  <p class="code"><!--code--><!--/code--></p>
+  <h1><!--title-->PANTAU sedang tidak tersedia<!--/title--></h1>
+  <p class="message"><!--message-->Server sedang diperbarui atau mengalami gangguan. Coba lagi dalam beberapa menit.<!--/message--></p>
+  <div class="actions">
+    <button class="secondary" type="button" onclick="location.reload()">Muat ulang</button>
+    <a class="primary" href="/">Ke halaman utama</a>
+  </div>
+</main>
+</body>
+</html>

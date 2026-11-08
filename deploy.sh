@@ -17,6 +17,14 @@ if [ "${1:-}" = "--with-data" ]; then
   $SSH "$HOST" "mkdir -p ~/pantau-backup && [ ! -f $APP/Data/pantau.db ] || cp -p $APP/Data/pantau.db ~/pantau-backup/pantau-\$(date +%Y%m%d-%H%M%S).db; chmod 700 ~/pantau-backup"
 fi
 
+# Paket dipasang dan versi dicek sebelum kode dikirim: bila gagal, server tetap utuh di versi lama
+# (bukan backend lama yang melayani halaman baru). DROP COLUMN di migrasi db.py butuh SQLite 3.35+.
+rsync -az -e "$SSH" requirements.txt "$HOST:$APP/requirements.txt"
+$SSH "$HOST" "set -e; cd $APP
+[ -d .venv ] || python3 -m venv .venv
+.venv/bin/python -c 'import sqlite3, sys; sys.exit(0 if sqlite3.sqlite_version_info >= (3, 35) else \"SQLite \" + sqlite3.sqlite_version + \" terlalu lama, butuh 3.35 atau lebih baru.\")'
+.venv/bin/pip install -q -r requirements.txt"
+
 rsync -az --delete --exclude __pycache__ --exclude .DS_Store "${INCLUDES[@]}" --exclude "*" -e "$SSH" ./ "$HOST:$APP/"
 
 # Sisa kiriman versi lama yang sekarang di luar daftar putih (tidak dihapus rsync karena dikecualikan).
@@ -24,8 +32,6 @@ OLD_EXTRAS=".agents .augment .claude .cline .codebuddy .codewhale .codex .contin
 
 $SSH -t "$HOST" "set -e; cd $APP
 rm -rf $OLD_EXTRAS
-[ -d .venv ] || python3 -m venv .venv
-.venv/bin/pip install -q -r requirements.txt
 sudo systemctl restart pantau
 sleep 3
 systemctl is-active pantau

@@ -185,21 +185,31 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 10px 12px 12px;
+  /* Ruang di bawah menu setinggi footer (app-shell.js): saat halaman di-scroll sampai bawah, menu terakhir tetap bisa di-scroll ke atas footer. */
+  padding: 10px 12px calc(12px + var(--pantau-footer-height, 0px));
 }
 
 .pantau-sidebar-nav {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   width: 100%;
   min-height: 44px;
-  padding: 10px 12px;
+  padding: 12px;
   color: #475569;
   font-size: 14px;
   font-weight: 600;
   text-align: left;
   white-space: nowrap;
+}
+
+/* Ikon setinggi satu baris teks dan rata atas: menu yang turun baris tetap punya ikon sejajar baris pertamanya. */
+.pantau-sidebar-nav,
+.pantau-sidebar-group-title,
+.pantau-sidebar-nav > i,
+.pantau-sidebar-toggle > i,
+.pantau-sidebar-group-title > i {
+  line-height: 20px;
 }
 
 .pantau-sidebar-nav > i,
@@ -234,11 +244,11 @@
 /* Judul grup = tombol buka/tutup sub menu (toggleSidebarGroup di app-shell.js). */
 .pantau-sidebar-group-title {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   width: 100%;
   min-height: 36px;
-  padding: 4px 12px;
+  padding: 8px 12px;
   color: var(--pantau-ink);
   font-size: 12px;
   font-weight: 800;
@@ -249,7 +259,7 @@
 }
 
 @media (pointer: coarse) {
-  .pantau-sidebar-group-title { min-height: 44px; }
+  .pantau-sidebar-group-title { min-height: 44px; padding-top: 12px; padding-bottom: 12px; }
 }
 
 .pantau-sidebar-group-title:hover {
@@ -280,13 +290,61 @@
   display: none;
 }
 
-/* Sub menu menjorok: ikonnya sejajar dengan teks judul grup (12 padding + 20 ikon + 12 jarak). */
+/* Sub menu menjorok: teksnya sejajar dengan teks judul grup (12 padding + 20 ikon + 12 jarak). */
 .pantau-sidebar:not(.is-collapsed) .pantau-sidebar-group > .pantau-sidebar-nav {
   padding-left: 44px;
 }
 
+/* Menu tingkat terakhir tanpa ikon; ikonnya hanya tampil saat sidebar diciutkan, karena saat itu tidak ada teks. */
 .pantau-sidebar:not(.is-collapsed) .pantau-sidebar-group > .pantau-sidebar-nav > i {
-  text-align: left;
+  display: none;
+}
+
+/* Sub grup di dalam grup (admin: Badan Usaha > Tagihan > Upload Excel). Tiap tingkat menjorok 32px: ikon sub grup dan
+   teks menu terakhir sejajar teks induknya (di 12, 44, 76px); teks yang tidak muat turun baris. */
+.pantau-sidebar-group.is-closed > .pantau-sidebar-group {
+  display: none;
+}
+
+.pantau-sidebar-group > .pantau-sidebar-subgroup {
+  margin-top: 0;
+}
+
+.pantau-sidebar-subgroup > .pantau-sidebar-group-title {
+  min-height: 44px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.pantau-sidebar:not(.is-collapsed) .pantau-sidebar-subgroup > .pantau-sidebar-group-title {
+  padding-left: 44px;
+}
+
+.pantau-sidebar:not(.is-collapsed) .pantau-sidebar-subgroup > .pantau-sidebar-nav {
+  padding-left: 76px;
+  padding-right: 8px;   /* "Riwayat Perubahan" pas satu baris di sidebar 240px */
+}
+
+/* Teks menu yang panjang turun ke baris berikutnya, tidak terpotong. */
+.pantau-sidebar-label {
+  white-space: normal;
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+
+/* Saat sidebar melebar, isinya langsung selebar akhirnya,
+   agar teks tidak terlipat berkali-kali selama animasi. */
+.pantau-sidebar:not(.is-collapsed) .pantau-sidebar-nav-list {
+  min-width: calc(var(--pantau-sidebar-width) - 1px);
+}
+
+.pantau-sidebar:not(.is-collapsed) .pantau-sidebar-toggle {
+  min-width: calc(var(--pantau-sidebar-width) - 25px);
 }
 
 /* Sidebar diciutkan: hanya ikon. */
@@ -342,3 +400,4 @@
   font-size: 12px;
   text-align: center;
 }
+

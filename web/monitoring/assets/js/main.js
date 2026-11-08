@@ -15,7 +15,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         await loadData();
         await loadRecords();
     } catch (error) {
-        showError(`Gagal memuat database PANTAU: ${error.message}. Pastikan backend aktif dan file pantau.db tersedia.`);
+        // error.status ada = dari server; tidak ada = skrip halaman gagal (misalnya file grafik tidak termuat).
+        showError(error.status !== undefined ? `Gagal memuat data PANTAU. ${error.message}` : "Halaman tidak termuat lengkap. Muat ulang halaman; bila tetap muncul, hubungi admin PANTAU.");
         [["tableBody", 7], ["topTagihanBody", 6], ["topBayarBody", 6]].forEach(([id, cols]) => {
             const tbody = document.getElementById(id);
             if (tbody) tbody.innerHTML = `<tr><td colspan="${cols}" class="px-3 py-8 text-center text-rose-600">Data tidak dapat dimuat dari database.</td></tr>`;

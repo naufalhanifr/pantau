@@ -2,6 +2,7 @@ import sqlite3
 from typing import Any, Iterable
 
 from ..config import MONTHS
+from ..db import log_change
 from .normalize import amount_error, normalize_kode, normalize_name, parse_amount
 
 JENIS_TABLE = {"tagihan": "tagihan", "pembayaran": "pembayaran"}
@@ -104,7 +105,7 @@ def _upsert_amount(conn: sqlite3.Connection, table: str, kode: str, nama: str, b
     )
 
 
-def _clean_rows(rows: Iterable[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[str]]:
+def clean_rows(rows: Iterable[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[str]]:
     cleaned, errors, seen = [], [], set()
     for position, row in enumerate(rows, start=1):
         kode = normalize_kode(row.get("kode_bu"))
@@ -131,55 +132,31 @@ def _clean_rows(rows: Iterable[dict[str, Any]]) -> tuple[list[dict[str, Any]], l
     return cleaned, errors
 
 
-def row_errors(rows: list[dict[str, Any]]) -> list[str]:
-    """Dicek sebelum backup, supaya percobaan yang pasti ditolak tidak menggeser file backup lama."""
-    return _clean_rows(rows)[1][:50]
-
-
-def import_rows(
-    conn: sqlite3.Connection, jenis: str, bulan: str, rows: list[dict[str, Any]], replace: bool, source: str
-) -> dict[str, Any]:
-    """Simpan hasil upload satu jenis (tagihan | pembayaran) pada satu bulan."""
-    table = JENIS_TABLE[jenis]
-    cleaned, errors = _clean_rows(rows)
-    if errors:
-        return {"ok": False, "errors": errors[:50]}
-
-    deleted = conn.execute(f"DELETE FROM {table} WHERE bulan = ?", (bulan,)).rowcount if replace else 0
+def _save(conn: sqlite3.Connection, table: str, bulan: str, cleaned: list[dict[str, Any]]) -> None:
     for row in cleaned:
         _upsert_company(conn, row["kode_bu"], row["nama_bu"])
         _upsert_amount(conn, table, row["kode_bu"], row["nama_bu"], bulan, row["peserta"], row["nominal"])
 
-    conn.execute(
-        "INSERT INTO import_log (action, source, jenis, bulan, rows_written, rows_deleted) VALUES (?, ?, ?, ?, ?, ?)",
-        ("upload", source, jenis, bulan, len(cleaned), deleted),
-    )
-    return {"ok": True, "written": len(cleaned), "deleted": deleted}
 
-
-def save_workspace(
-    conn: sqlite3.Connection, jenis: str, bulan: str, upserts: list[dict[str, Any]], deletes: list[str]
-) -> dict[str, Any]:
-    """Simpan perubahan dari workspace spreadsheet satu jenis: baris diubah/ditambah dan baris dihapus."""
+def import_rows(conn: sqlite3.Connection, jenis: str, bulan: str, cleaned: list[dict[str, Any]], replace: bool, source: str) -> dict[str, int]:
+    """Simpan hasil upload satu jenis (tagihan | pembayaran) pada satu bulan; baris dari clean_rows."""
     table = JENIS_TABLE[jenis]
-    cleaned, errors = _clean_rows(upserts)
-    if errors:
-        return {"ok": False, "errors": errors[:50]}
+    deleted = conn.execute(f"DELETE FROM {table} WHERE bulan = ?", (bulan,)).rowcount if replace else 0
+    _save(conn, table, bulan, cleaned)
+    log_change(conn, "upload", source, jenis, bulan, len(cleaned), deleted)
+    return {"written": len(cleaned), "deleted": deleted}
 
+
+def save_workspace(conn: sqlite3.Connection, jenis: str, bulan: str, cleaned: list[dict[str, Any]], deletes: list[str]) -> dict[str, int]:
+    """Simpan perubahan dari workspace spreadsheet satu jenis: baris diubah/ditambah (dari clean_rows) dan baris dihapus."""
+    table = JENIS_TABLE[jenis]
     deleted = sum(
         conn.execute(f"DELETE FROM {table} WHERE kode_bu = ? AND bulan = ?", (kode, bulan)).rowcount
         for kode in {normalize_kode(k) for k in deletes if k}
     )
-
-    for row in cleaned:
-        _upsert_company(conn, row["kode_bu"], row["nama_bu"])
-        _upsert_amount(conn, table, row["kode_bu"], row["nama_bu"], bulan, row["peserta"], row["nominal"])
-
-    conn.execute(
-        "INSERT INTO import_log (action, source, jenis, bulan, rows_written, rows_deleted) VALUES (?, ?, ?, ?, ?, ?)",
-        ("workspace", "Workspace admin", jenis, bulan, len(cleaned), deleted),
-    )
-    return {"ok": True, "written": len(cleaned), "deleted": deleted}
+    _save(conn, table, bulan, cleaned)
+    log_change(conn, "workspace", "Workspace admin", jenis, bulan, len(cleaned), deleted)
+    return {"written": len(cleaned), "deleted": deleted}
 
 
 def import_log(conn: sqlite3.Connection, jenis: str, limit: int = 100) -> list[dict[str, Any]]:

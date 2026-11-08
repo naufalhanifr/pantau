@@ -37,9 +37,19 @@ Tidak ada kata sandi bawaan: login menu yang variabelnya kosong selalu ditolak, 
 - `nginx-admin.conf`, `nginx-main.conf`, dan `pantau.service` tidak ikut `deploy.sh`. Dua yang terakhir adalah contoh yang belum pernah dibandingkan dengan server: bandingkan dulu dengan yang terpasang. Setelah mengubah nginx, salin ke `/etc/nginx/sites-available/` lalu `sudo nginx -t && sudo systemctl reload nginx`.
 - nginx domain utama wajib meneruskan IP pengunjung: `proxy_set_header Host $host;` dan `proxy_set_header X-Forwarded-For $remote_addr;`. Tanpa itu semua pengunjung terhitung satu IP dan satu orang salah ketik bisa mengunci semua orang.
 
+### Pesan error
+
+Semua error memakai pesan berbahasa Indonesia yang menyebut langkah berikutnya, supaya pengguna tidak melihat kode mentah.
+
+- **Backend** (`ERROR_MESSAGES` di `backend/main.py`): pesan bawaan per kode (404, 405, 422, 429, 500, 503 saat database sibuk) bila route tidak memberi pesan sendiri. Browser yang membuka alamat yang tidak ada mendapat halaman `web/shared/error.html`, bukan teks JSON.
+- **Frontend** (`PANTAU_ERROR_MESSAGES` di `web/shared/common.js`): untuk respons tanpa pesan dari backend, misalnya halaman error nginx (502, 504, 413) atau koneksi putus. Semua permintaan API lewat `pantauFetch`.
+- **nginx**: saat backend mati atau terlalu lama (502/504), `nginx-admin.conf` dan `nginx-main.conf` menampilkan `web/shared/error.html`. Halaman ini mandiri tanpa CSS/JS luar, jadi tetap tampil walau backend mati. Path yang tidak ada diteruskan ke aplikasi supaya halaman 404-nya sama.
+
 ## Deploy
 
 `./deploy.sh` hanya mengirim yang dipakai aplikasi: `backend/`, `web/`, `requirements.txt`, `run.sh`. Folder alat bantu/agent AI (`.claude`, `.cursor`, dan sejenisnya), test, dan file dokumentasi tidak ikut, dan sisa kiriman lama di server dihapus. Setelah restart, skrip mengatur izin `Data/`, memasang backup harian, dan memberi peringatan bila ada yang belum siap.
+
+Sebelum mengirim kode, skrip memasang paket dan memastikan SQLite server versi 3.35 atau lebih baru (dibutuhkan migrasi); bila gagal, server tetap di versi lama. Waktu di Riwayat Perubahan selalu WIB, apa pun zona waktu server.
 
 Checklist deploy pertama versi ini (skrip memeriksa nomor 1 sampai 3 dan menulis `PERINGATAN` bila belum):
 
@@ -55,7 +65,7 @@ Checklist deploy pertama versi ini (skrip memeriksa nomor 1 sampai 3 dan menulis
 Database disalin otomatis ke `backups/` (di luar `Data/`, tidak ikut `deploy.sh`), dengan izin hanya pemilik:
 
 - **Harian** pukul 01:15 lewat cron yang dipasang `deploy.sh`; 7 terakhir disimpan.
-- **Sebelum mengganti data satu bulan** lewat admin atau terminal; 10 terakhir disimpan.
+- **Sebelum upload yang mengganti data**, satu kali per upload walau berisi banyak bulan, lewat admin atau terminal; 10 terakhir disimpan.
 
 Satu file sebesar database (±40 MB), jadi pastikan disk server menyisakan ±700 MB. Memulihkan: `sudo systemctl stop pantau`, salin file backup menjadi `Data/pantau.db`, `sudo systemctl start pantau`.
 
@@ -72,11 +82,12 @@ Database menyimpan nama bulan tanpa tahun, jadi satu `pantau.db` = satu tahun. U
 ```
 backend/                     FastAPI
   main.py                    app, static mount
-  config.py  db.py  auth.py  konfigurasi, skema SQLite, token & kunci login
+  config.py  db.py  auth.py  konfigurasi; skema, migrasi & catatan riwayat (WIB); token, kunci login & rute login/refresh/logout
   templating.py              penyusun HTML: <!-- @include file.html -->
   routers/monitoring.py      GET /, /api/data, /api/health
-  routers/karyawan.py        POST /api/karyawan/login, /logout; GET /meta; POST /search, /riwayat (perlu token)
-  routers/ppu_pn.py          GET /api/ppu-pn/satker dan /detail (terbuka), POST /login, /logout, /peserta (token PPU PN)
+  routers/__init__.py        check_month (dipakai semua router)
+  routers/karyawan.py        POST /api/karyawan/login, /refresh, /logout; GET /meta; POST /search, /riwayat (perlu token)
+  routers/ppu_pn.py          GET /api/ppu-pn/satker dan /detail (terbuka), POST /login, /refresh, /logout, /peserta (token PPU PN)
   routers/admin.py           GET /admin, /api/admin/* (login, logout, upload, ppu-pn/upload, import, records, history)
   services/excel.py          baca Excel + deteksi kolom/bulan/jenis
   services/records.py        query & simpan tagihan/pembayaran
@@ -133,7 +144,7 @@ HTML dipecah per menu, tetapi backend menyusunnya kembali menjadi satu dokumen. 
 
 Pemetaan kolom dan bulan bisa diubah di layar upload sebelum disimpan. Opsi "Ganti seluruh data bulan yang sama" menghapus data jenis tersebut pada bulan itu sebelum menyimpan isi file; dialog konfirmasi menampilkan jumlah baris lama dan baru.
 
-Seluruh baris ditolak, dengan pesan per baris, bila ada isi yang salah: KODE BU bukan 8 digit, Noka bukan 13 digit, jumlah bukan angka atau negatif, atau Tanggal Bayar di luar bulan tagihnya.
+Semua sheet dalam satu upload disimpan sekaligus: bila satu bulan gagal, tidak ada yang tersimpan. Seluruh baris ditolak, dengan pesan per baris, bila ada isi yang salah: KODE BU bukan 8 digit, Noka bukan 13 digit, jumlah bukan angka atau negatif, atau Tanggal Bayar di luar bulan tagihnya.
 
 ## Data Karyawan
 

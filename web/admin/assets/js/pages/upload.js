@@ -334,7 +334,8 @@ async function saveUpload() {
 
     const label = ADMIN_JENIS[jenis];
     const counts = await existingRowCounts(jenis);
-    const summaries = chosen.map(sheet => replaceSummary(sheet.bulan, replace ? counts[sheet.bulan] : 0, buildImportRows(sheet, jenis).rows.length));
+    const prepared = chosen.map(sheet => ({ sheet, ...buildImportRows(sheet, jenis) }));
+    const summaries = prepared.map(({ sheet, rows }) => replaceSummary(sheet.bulan, replace ? counts[sheet.bulan] : 0, rows.length));
     const action = replace ? "Seluruh data" : "Data";
     const effect = replace ? "diganti dengan isi file" : "diperbarui sesuai isi file";
     if (!(await pantauConfirm({
@@ -347,22 +348,16 @@ async function saveUpload() {
 
     const button = document.getElementById("uploadSaveButton");
     button.disabled = true;
-    const done = [];
     try {
-        for (const sheet of chosen) {
-            const { rows, skipped } = buildImportRows(sheet, jenis);
-            const result = await adminApi("/api/admin/import", {
-                method: "POST",
-                body: { jenis, bulan: sheet.bulan, replace, source: `${uploadFileName} / ${sheet.name}`, rows },
-            });
-            done.push(`${sheet.bulan}: ${formatNumber(result.written)} baris${skipped ? ` (${skipped} baris tanpa ${UPLOAD_JENIS[jenis].keyLabel} dilewati)` : ""}`);
-        }
+        // Semua sheet dalam satu permintaan: server menyimpan semuanya atau tidak sama sekali.
+        const sheets = prepared.map(({ sheet, rows }) => ({ bulan: sheet.bulan, source: `${uploadFileName} / ${sheet.name}`, rows }));
+        const { per_bulan } = await adminApi("/api/admin/import", { method: "POST", body: { jenis, replace, sheets } });
+        const done = per_bulan.map((result, i) => `${result.bulan}: ${formatNumber(result.written)} baris${prepared[i].skipped ? ` (${prepared[i].skipped} baris tanpa ${UPLOAD_JENIS[jenis].keyLabel} dilewati)` : ""}`);
         showToast(`${label} tersimpan ke database.\n${done.join("\n")}`, "success", 7000);
+        loadUploadMonths();
     } catch (error) {
-        const prefix = done.length ? `Sebagian tersimpan (${done.join("; ")}).\n` : "";
-        showToast(`${prefix}Gagal menyimpan: ${error.message}`, "error");
+        showToast(`Gagal menyimpan: ${error.message}`, "error");
     } finally {
         button.disabled = false;
-        if (done.length) loadUploadMonths();
     }
 }

@@ -4,6 +4,10 @@ from typing import Any
 from ..config import MONTHS
 
 
+class ExcelError(ValueError):
+    """Isi file Excel salah; pesannya ditampilkan apa adanya ke admin."""
+
+
 # Di atas ini pasti salah ketik, dan melewati batas INTEGER SQLite (2^63).
 MAX_AMOUNT = 10 ** 15
 

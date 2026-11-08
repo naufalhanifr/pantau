@@ -14,6 +14,7 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill
 
 from ..config import MONTHS
+from ..db import log_change
 from .normalize import amount_error, like_pattern, normalize_kode, normalize_month, normalize_name, parse_amount, parse_number
 
 COLUMNS = {
@@ -104,7 +105,7 @@ def _row_problems(bulan: str, kode: str, noka: str, menunggak: Any, tagihan: Any
 
 
 def validate_rows(rows: list[tuple]) -> list[str]:
-    """Baris hasil read_workbook (ROW_FIELDS), untuk import terminal yang tidak lewat _clean."""
+    """Baris hasil read_workbook (ROW_FIELDS), untuk import terminal yang tidak lewat clean."""
     return [
         f"Baris {position} ({row[0]}, {row[6]}): {problem}"
         for position, row in enumerate(rows, start=1)
@@ -178,19 +179,12 @@ def _delete_month(conn: sqlite3.Connection, bulan: str) -> int:
     return conn.execute("DELETE FROM karyawan WHERE bulan = ?", (bulan,)).rowcount
 
 
-def _log(conn: sqlite3.Connection, action: str, source: str, bulan: str, written: int, deleted: int) -> None:
-    conn.execute(
-        "INSERT INTO import_log (action, source, jenis, bulan, rows_written, rows_deleted) VALUES (?, ?, ?, ?, ?, ?)",
-        (action, source, "karyawan", bulan, written, deleted),
-    )
-
-
 def import_rows(conn: sqlite3.Connection, rows: list[tuple], source: str) -> dict[str, Any]:
     """Ganti seluruh data bulan yang ada di file; bulan lain tidak disentuh."""
     months = sorted({row[0] for row in rows}, key=MONTHS.index)
     deleted = sum(_delete_month(conn, bulan) for bulan in months)
     _insert(conn, rows)
-    _log(conn, "upload", source, ", ".join(months), len(rows), deleted)
+    log_change(conn, "upload", source, "karyawan", ", ".join(months), len(rows), deleted)
     return {"months": months, "written": len(rows), "deleted": deleted}
 
 
@@ -212,7 +206,7 @@ def admin_sheets(rows: list[tuple], bulan: str = "") -> list[dict[str, Any]]:
     } for month in MONTHS if month in by_month]
 
 
-def _clean(bulan: str, items: list[dict[str, Any]]) -> tuple[list[tuple], list[str]]:
+def clean(bulan: str, items: list[dict[str, Any]]) -> tuple[list[tuple], list[str]]:
     cleaned, errors, seen = [], [], set()
     for position, item in enumerate(items, start=1):
         noka = _noka(item.get("noka_keluarga"))
@@ -247,19 +241,12 @@ def _clean(bulan: str, items: list[dict[str, Any]]) -> tuple[list[tuple], list[s
     return cleaned, errors
 
 
-def row_errors(bulan: str, items: list[dict[str, Any]]) -> list[str]:
-    """Dicek sebelum backup, supaya percobaan yang pasti ditolak tidak menggeser file backup lama."""
-    return _clean(bulan, items)[1][:50]
-
-
-def import_month(conn: sqlite3.Connection, bulan: str, items: list[dict[str, Any]], replace: bool, source: str) -> dict[str, Any]:
-    cleaned, errors = _clean(bulan, items)
-    if errors:
-        return {"ok": False, "errors": errors[:50]}
+def import_month(conn: sqlite3.Connection, bulan: str, cleaned: list[tuple], replace: bool, source: str) -> dict[str, int]:
+    """Baris dari clean(): ganti (atau perbarui) data satu bulan tagih."""
     deleted = _delete_month(conn, bulan) if replace else 0
     _insert(conn, cleaned)
-    _log(conn, "upload", source, bulan, len(cleaned), deleted)
-    return {"ok": True, "written": len(cleaned), "deleted": deleted}
+    log_change(conn, "upload", source, "karyawan", bulan, len(cleaned), deleted)
+    return {"written": len(cleaned), "deleted": deleted}
 
 
 def month_rows(conn: sqlite3.Connection, bulan: str) -> list[dict[str, Any]]:
@@ -272,18 +259,15 @@ def month_rows(conn: sqlite3.Connection, bulan: str) -> list[dict[str, Any]]:
     return [{**row, "tanggal_bayar": _display(row["tanggal_bayar"])} for row in map(dict, conn.execute(sql, (bulan,)))]
 
 
-def save_workspace(conn: sqlite3.Connection, bulan: str, upserts: list[dict[str, Any]], deletes: list[str]) -> dict[str, Any]:
-    cleaned, errors = _clean(bulan, upserts)
-    if errors:
-        return {"ok": False, "errors": errors[:50]}
+def save_workspace(conn: sqlite3.Connection, bulan: str, cleaned: list[tuple], deletes: list[str]) -> dict[str, int]:
     nokas = {_noka(k) for k in deletes if k}
     conn.executemany("DELETE FROM karyawan_pembayaran WHERE bulan = ? AND noka_keluarga = ?", [(bulan, noka) for noka in nokas])
     deleted = sum(
         conn.execute("DELETE FROM karyawan WHERE bulan = ? AND noka_keluarga = ?", (bulan, noka)).rowcount for noka in nokas
     )
     _insert(conn, cleaned)
-    _log(conn, "workspace", "Workspace admin", bulan, len(cleaned), deleted)
-    return {"ok": True, "written": len(cleaned), "deleted": deleted}
+    log_change(conn, "workspace", "Workspace admin", "karyawan", bulan, len(cleaned), deleted)
+    return {"written": len(cleaned), "deleted": deleted}
 
 
 def build_template() -> bytes:

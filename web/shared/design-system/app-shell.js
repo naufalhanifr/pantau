@@ -13,6 +13,9 @@
     const header=document.querySelector('.pantau-header');
     const height=header && Math.ceil(header.getBoundingClientRect().height);
     if(height) document.documentElement.style.setProperty('--pantau-header-height',height+'px');
+    // Footer menutupi bagian bawah sidebar; sidebar diberi ruang scroll setinggi footer.
+    const footer=document.querySelector('.pantau-footer');
+    if(footer) document.documentElement.style.setProperty('--pantau-footer-height',Math.ceil(footer.getBoundingClientRect().height)+'px');
   }
   window.toggleSidebar=function(){
     const sidebar=document.querySelector('.pantau-sidebar'); if(!sidebar) return;
@@ -24,8 +27,15 @@
   };
   // Buka/tutup sub menu satu grup (tombol .pantau-sidebar-group-title).
   window.toggleSidebarGroup=function(title){
-    const closed=title.closest('.pantau-sidebar-group').classList.toggle('is-closed');
+    const group=title.closest('.pantau-sidebar-group');
+    const closed=group.classList.toggle('is-closed');
     title.setAttribute('aria-expanded',String(!closed));
+    // Menutup grup ikut menutup sub grupnya, kecuali sub grup yang berisi menu aktif.
+    if(closed) group.querySelectorAll('.pantau-sidebar-group:not(.is-closed)').forEach(sub=>{
+      if(sub.querySelector('.pantau-sidebar-active')) return;
+      sub.classList.add('is-closed');
+      sub.querySelector(':scope > .pantau-sidebar-group-title')?.setAttribute('aria-expanded','false');
+    });
   };
   // HP: sidebar terbuka menutupi konten, jadi mulai tertutup dan menutup lagi setelah menu dipilih.
   const phone=window.matchMedia('(max-width: 639px)');
@@ -38,5 +48,5 @@
   window.addEventListener('resize',syncHeaderHeight);
   // Admin menampilkan header setelah login: ukur ulang saat header mulai terlihat.
   const header=document.querySelector('.pantau-header');
-  if(header && window.ResizeObserver) new ResizeObserver(syncHeaderHeight).observe(header);
+  if(window.ResizeObserver){const ro=new ResizeObserver(syncHeaderHeight);[header,document.querySelector('.pantau-footer')].forEach(el=>el&&ro.observe(el));}
 })();

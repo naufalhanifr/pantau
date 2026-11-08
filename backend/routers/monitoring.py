@@ -1,4 +1,5 @@
 import json
+from contextlib import closing
 
 from fastapi import APIRouter, Header
 from fastapi.responses import HTMLResponse, Response
@@ -18,11 +19,8 @@ def monitoring_page():
 
 @router.get("/api/health")
 def health():
-    conn = connect()
-    try:
+    with closing(connect()) as conn:
         conn.execute("SELECT 1 FROM perusahaan LIMIT 1").fetchone()
-    finally:
-        conn.close()
     return {"status": "ok"}
 
 
@@ -36,11 +34,8 @@ def data(if_none_match: str = Header(default="")):
     global _data_cache
     version = DB_PATH.stat().st_mtime_ns   # dibaca sebelum query: tulisan di tengah jalan membuat versi berikutnya berbeda
     if _data_cache[0] != version:
-        conn = connect()
-        try:
+        with closing(connect()) as conn:
             rows = monitoring_rows(conn)
-        finally:
-            conn.close()
         body = json.dumps({"data": rows, "total_records": len(rows), "year": PANTAU_YEAR}, ensure_ascii=False, separators=(",", ":")).encode()
         _data_cache = (version, body)
     # Data publik ±388 KB yang jarang berubah: browser cek ulang dengan ETag, tanpa mengunduh lagi bila sama.
