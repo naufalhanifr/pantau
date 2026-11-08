@@ -280,6 +280,15 @@
   display: none;
 }
 
+/* Sub menu menjorok: ikonnya sejajar dengan teks judul grup (12 padding + 20 ikon + 12 jarak). */
+.pantau-sidebar:not(.is-collapsed) .pantau-sidebar-group > .pantau-sidebar-nav {
+  padding-left: 44px;
+}
+
+.pantau-sidebar:not(.is-collapsed) .pantau-sidebar-group > .pantau-sidebar-nav > i {
+  text-align: left;
+}
+
 /* Sidebar diciutkan: hanya ikon. */
 .pantau-sidebar.is-collapsed {
   width: var(--pantau-sidebar-collapsed-width);
@@ -314,7 +323,7 @@
 
 /* HP: konten selalu memberi ruang ikon saja; sidebar terbuka menutupi konten (sama seperti Dashboard). */
 @media (max-width: 639px) {
-  :root { --pantau-sidebar-width: 210px; }
+  :root { --pantau-sidebar-width: 240px; }
   .pantau-main,
   .pantau-app:has(.pantau-sidebar.is-collapsed) .pantau-main {
     margin-left: var(--pantau-sidebar-collapsed-width);
