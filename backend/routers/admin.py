@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse, Response
 from pydantic import BaseModel, Field
 
 from ..auth import check_login, issue_token, require_admin, revoke_token
-from ..config import ADMIN_PASSWORD, MAX_UPLOAD_BYTES, MONTHS, WEB_DIR
+from ..config import ADMIN_PASSWORD, MONTHS, WEB_DIR
 from ..db import connect, transaction
 from ..services import karyawan, ppu_pn, records
 from ..services.backup import backup_db
@@ -74,13 +74,6 @@ def summary():
         conn.close()
 
 
-def _read_limited(file: UploadFile) -> bytes:
-    content = b"" if (file.size or 0) > MAX_UPLOAD_BYTES else file.file.read()
-    if (file.size or len(content)) > MAX_UPLOAD_BYTES:
-        raise HTTPException(status_code=413, detail=f"Ukuran file melebihi {MAX_UPLOAD_BYTES // 1024 // 1024} MB.")
-    return content
-
-
 @api.post("/ppu-pn/upload")
 def upload_ppu_pn(file: UploadFile = File(...), bulan: str = "", simpan: bool = False):
     """simpan=False hanya membaca berkas dan melaporkan isinya, untuk ditampilkan di dialog konfirmasi."""
@@ -88,7 +81,7 @@ def upload_ppu_pn(file: UploadFile = File(...), bulan: str = "", simpan: bool = 
     if not (file.filename or "").lower().endswith((".xlsx", ".xlsm")):
         raise HTTPException(status_code=422, detail="Format file harus .xlsx atau .xlsm.")
     try:
-        rows = ppu_pn.read_workbook(BytesIO(_read_limited(file)))
+        rows = ppu_pn.read_workbook(BytesIO(file.file.read()))
     except ValueError as error:   # sheet/kolom tidak ada atau isi baris salah: pesannya memang untuk pengguna
         raise HTTPException(status_code=422, detail=str(error))
     except Exception:
@@ -111,8 +104,7 @@ def upload(file: UploadFile = File(...), jenis: str = "", bulan: str = ""):
     if jenis == "karyawan" and bulan not in MONTHS:
         # File setahun ±26 MB JSON ke browser: Karyawan hanya lewat tombol Upload per bulan.
         raise HTTPException(status_code=422, detail="Upload Karyawan per bulan: pilih tombol Upload pada bulan yang dituju.")
-    # Cek ukuran dulu (sudah diketahui dari multipart) supaya file raksasa tidak dimuat ke memori.
-    content = _read_limited(file)
+    content = file.file.read()  # tanpa batas ukuran: hanya admin yang bisa upload
     try:
         if jenis == "karyawan":
             # Upload per bulan hanya mengirim baris bulan itu ke browser (file setahun ±150 ribu baris).

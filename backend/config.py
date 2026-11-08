@@ -28,8 +28,6 @@ KARYAWAN_IDLE_SECONDS = 30 * 60
 LOGIN_MAX_FAILURES = 10
 LOGIN_LOCK_SECONDS = 15 * 60
 
-MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # file Karyawan setahun ±30 MB
-
 MONTHS = [
     "Januari", "Februari", "Maret", "April", "Mei", "Juni",
     "Juli", "Agustus", "September", "Oktober", "November", "Desember",

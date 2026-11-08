@@ -44,7 +44,7 @@ Tidak ada kata sandi bawaan: login menu yang variabelnya kosong selalu ditolak, 
 Checklist deploy pertama versi ini (skrip memeriksa nomor 1 sampai 3 dan menulis `PERINGATAN` bila belum):
 
 1. `/etc/pantau.env` berisi `PANTAU_ADMIN_PASSWORD`, `PANTAU_KARYAWAN_PASSWORD`, `PANTAU_PPU_PN_PASSWORD`, `PANTAU_SECRET_KEY`. Ambil dari `server.env`, lalu `sudo systemctl restart pantau`.
-2. `nginx-admin.conf` terbaru terpasang. Tanpa batas 50 MB, simpan data Karyawan gagal 413.
+2. `nginx-admin.conf` terbaru terpasang. Tanpanya, upload/simpan file besar gagal 413 karena batas bawaan nginx 1 MB.
 3. Data PPU PN terisi: web admin, menu PPU PN, Upload Excel. Tabel versi lama dikosongkan otomatis saat aplikasi start.
 4. nginx domain utama: lihat bagian Keamanan di atas dan `nginx-main.conf`, dan pastikan port 8000 tidak terbuka ke internet.
 

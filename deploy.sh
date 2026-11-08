@@ -44,7 +44,7 @@ else
   echo 'PERINGATAN: crontab tidak ada, backup harian belum terpasang (lihat README).'
 fi
 curl -fsS http://127.0.0.1:8000/api/ppu-pn/satker | grep -q '\"months\":\[\]' && echo 'PERINGATAN: data PPU PN masih kosong; upload lewat web admin, menu PPU PN.'
-grep -qs 'client_max_body_size 50m' /etc/nginx/sites-available/pantau-admin || echo 'PERINGATAN: nginx-admin.conf versi terbaru belum terpasang; simpan data Karyawan bisa gagal 413 (lihat README).'
+grep -qs 'client_max_body_size 0;' /etc/nginx/sites-available/pantau-admin || echo 'PERINGATAN: nginx-admin.conf versi terbaru belum terpasang; upload/simpan file besar bisa gagal 413 (lihat README).'
 pid=\$(systemctl show -p MainPID --value pantau)
 for v in PANTAU_ADMIN_PASSWORD PANTAU_KARYAWAN_PASSWORD PANTAU_PPU_PN_PASSWORD PANTAU_SECRET_KEY; do
   sudo grep -qz \"^\$v=\" /proc/\$pid/environ || echo \"PERINGATAN: \$v belum di-set di service pantau; login web akan ditolak (lihat README).\"
