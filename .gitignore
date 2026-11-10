@@ -32,8 +32,8 @@ server.env
 /.trae/
 /.warp/
 /.windsurf/
-# .claude: hanya skill antislop yang dirujuk CLAUDE.md
+# .claude: skill project ikut repo, selain itu diabaikan
 /.claude/*
 !/.claude/skills/
 /.claude/skills/*
-!/.claude/skills/antislop/
+!/.claude/skills/*/
